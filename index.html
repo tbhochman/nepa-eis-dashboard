@@ -253,6 +253,7 @@
   .badge-complete { background: rgba(73,151,208,0.15); color: var(--blue); }
   .badge-underway { background: rgba(255,163,0,0.15); color: var(--yellow); }
   .badge-long { background: rgba(255,79,0,0.15); color: var(--orange); }
+  .badge-challenged { background: rgba(255,163,0,0.12); color: var(--yellow); font-size: 0.6rem; cursor: pointer; }
 
   /* Policy Timeline */
   .policy-timeline { position: relative; padding-left: 2rem; }
@@ -529,6 +530,95 @@
     </div>
   </div>
 
+  <!-- Litigation Section -->
+  <div id="litSection" class="section-title">NEPA Litigation</div>
+
+  <!-- Litigation KPIs -->
+  <div class="kpi-row">
+    <div class="kpi"><div class="value" id="litTotal">—</div><div class="label">Total Cases</div></div>
+    <div class="kpi blue"><div class="value" id="litAgencyWin">—</div><div class="label">Agency Win Rate</div></div>
+    <div class="kpi yellow"><div class="value" id="litMedianDays">—</div><div class="label">Median Duration</div></div>
+    <div class="kpi"><div class="value" id="litInjunction">—</div><div class="label">Injunctive Relief</div></div>
+    <div class="kpi timber"><div class="value" id="litVacatur">—</div><div class="label">Remand w/ Vacatur</div></div>
+  </div>
+
+  <!-- Litigation Charts -->
+  <div class="grid-2">
+    <div class="card">
+      <h2>Litigation Cases by Year <small>(filed)</small></h2>
+      <div class="chart-container"><canvas id="chartLitByYear"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Agency Win Rate by Year</h2>
+      <div class="chart-container"><canvas id="chartLitWinRate"></canvas></div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <h2>Most Litigated Agencies</h2>
+      <div class="chart-container tall"><canvas id="chartLitAgency"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Cases by Project Category</h2>
+      <div class="chart-container tall"><canvas id="chartLitCategory"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Litigation Filters + Table -->
+  <div class="global-filters" style="margin-bottom:0.5rem;padding:0.75rem 1.25rem">
+    <div class="filter-group">
+      <label>Agency</label>
+      <select id="litAgency"><option value="">All Agencies</option></select>
+    </div>
+    <div class="filter-group">
+      <label>Circuit</label>
+      <select id="litCircuit"><option value="">All Circuits</option></select>
+    </div>
+    <div class="filter-group">
+      <label>Prevailing Party</label>
+      <select id="litPrev">
+        <option value="">All</option>
+        <option value="Agency">Agency</option>
+        <option value="Challenger">Challenger</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Filed Year From</label>
+      <select id="litYearFrom"></select>
+    </div>
+    <div class="filter-group">
+      <label>To</label>
+      <select id="litYearTo"></select>
+    </div>
+    <div class="filter-group">
+      <label>Search</label>
+      <input id="litSearch" type="text" placeholder="Case or project name..." style="width:180px">
+    </div>
+    <button class="filter-reset" onclick="resetLitFilters()">Reset</button>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table id="litTable">
+        <thead><tr>
+          <th onclick="sortTable('litTable',0)">Case</th>
+          <th onclick="sortTable('litTable',1)">Plaintiff(s)</th>
+          <th onclick="sortTable('litTable',2)">Agency</th>
+          <th onclick="sortTable('litTable',3)">Court</th>
+          <th onclick="sortTable('litTable',4)">Project</th>
+          <th onclick="sortTable('litTable',5)">Filed</th>
+          <th onclick="sortTable('litTable',6)">Duration</th>
+          <th onclick="sortTable('litTable',7)">Outcome</th>
+        </tr></thead>
+        <tbody id="litBody"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:0.75rem;font-family:'IBM Plex Sans',sans-serif;font-size:0.75rem;color:var(--muted)">
+      Showing <span id="litRowCount">0</span> litigation records.
+      Source: <a href="https://navigatingnepa.com/" target="_blank" style="color:var(--orange)">Navigating NEPA / Breakthrough Institute</a> (2012–2022) &amp;
+      <a href="https://www.courtlistener.com/" target="_blank" style="color:var(--orange)">CourtListener</a> (2023–2026).
+    </div>
+  </div>
+
   <!-- Policy Timeline -->
   <div class="section-title">NEPA Policy Changes Affecting Timelines</div>
   <div class="card" style="margin-bottom:1.5rem">
@@ -559,6 +649,46 @@
 // ============================================================
 const completedRecords = DATA_COMPLETED.map(r => ({name:r.n, agency:r.a, cat:r.c, state:r.s, noi:r.noi, feis:r.feis, rod:r.rod, durFeis:r.df, dur:r.d}));
 const underwayRecords = DATA_UNDERWAY.map(r => ({name:r.n, agency:r.a, cat:r.c, state:r.s, noi:r.noi, latest:r.l, elapsed:r.e}));
+
+// Build set of EIS project names that were challenged in court
+const challengedEIS = (function() {
+  const cSet = new Set();
+  const litRaw = typeof DATA_LITIGATION !== 'undefined' ? DATA_LITIGATION : [];
+  if (!litRaw.length) return cSet;
+  const agFam = {'BLM':'DOI','NPS':'DOI','USFWS':'DOI','BOR':'DOI','BR':'DOI','BOEM':'DOI','BSEE':'DOI','BIA':'DOI','OSM':'DOI','DOI':'DOI','FWS':'DOI','OSMRE':'DOI',
+    'USFS':'USDA','USDA':'USDA','APHIS':'USDA','ARS':'USDA','FHWA':'DOT','FTA':'DOT','FAA':'DOT','DOT':'DOT','FRA':'DOT',
+    'NMFS':'NOAA','NOAA':'NOAA','FERC':'FERC','USACE':'USACE','DOS':'DOS','EPA':'EPA','DOE':'DOE','DOD':'DOD','TVA':'TVA','NRC':'NRC','BPA':'DOE'};
+  const agM = (a,b) => { if(!a||!b)return false; a=a.toUpperCase();b=b.toUpperCase(); return a===b||(agFam[a]||a)===(agFam[b]||b); };
+  const nm = s => s.toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+  const skip = ['generic environmental impact statement','programmatic environmental impact','resource management plan amendment',
+    'habitat conservation plan','revised land and resource management plan','central valley project','national flood insurance program',
+    'predator damage management','oil and gas leasing program','outer continental shelf','phase iii early restoration',
+    'nuclear spent fuel','comprehensive everglades restoration plan','general conservation plan','range wide general conservation',
+    'northeast multispecies fishery management plan','atlantic herring fishery management plan','bering sea and ale','steller sea lion'];
+  const lps = litRaw.filter(r => r.proj && r.proj.length >= 20).filter(r => { const np = nm(r.proj); return !skip.some(g => np.includes(g)); });
+  completedRecords.forEach(eis => {
+    const ne = nm(eis.name);
+    for (const lp of lps) {
+      if (!agM(lp.ag, eis.agency)) continue;
+      const np = nm(lp.proj);
+      if (np.length >= 20 && ne.includes(np)) { cSet.add(eis.name); return; }
+    }
+    const ew = ne.split(' ');
+    if (ew.length >= 5) {
+      for (let wl = Math.min(7,ew.length); wl >= 5; wl--) {
+        const core = ew.slice(0,wl).join(' ');
+        if (core.length < 30) continue;
+        for (const lp of lps) {
+          if (!agM(lp.ag, eis.agency)) continue;
+          if (nm(lp.proj).includes(core)) { cSet.add(eis.name); return; }
+        }
+        if (cSet.has(eis.name)) return;
+      }
+    }
+  });
+  return cSet;
+})();
+
 // ============================================================
 // CHART INSTANCES (stored for redraws)
 // ============================================================
@@ -856,12 +986,19 @@ function mergeDeep(target, source) {
 // -- Table rendering --
 function renderCompletedTable(records) {
   const tbody = document.getElementById('completedBody');
-  tbody.innerHTML = records.map(r => `<tr>
-    <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis" title="${r.name}">${r.name}</td>
+  tbody.innerHTML = records.map(r => {
+    const isChallenged = challengedEIS.has(r.name);
+    const challengeBadge = isChallenged ? '<span class="badge badge-challenged" title="This EIS was challenged in court — click to view litigation section" onclick="document.getElementById(\'litSection\').scrollIntoView({behavior:\'smooth\'})" style="flex-shrink:0">⚖ Challenged</span>' : '';
+    const nameCell = isChallenged
+      ? `<td style="max-width:300px" title="${r.name}"><div style="display:flex;align-items:center;gap:6px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name}</span>${challengeBadge}</div></td>`
+      : `<td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.name}">${r.name}</td>`;
+    return `<tr>
+    ${nameCell}
     <td style="white-space:nowrap;max-width:50px;overflow:hidden;text-overflow:ellipsis">${r.agency}</td><td style="white-space:normal;max-width:100px">${r.cat}</td><td style="white-space:normal;max-width:60px">${r.state}</td>
     <td>${r.noi||'—'}</td><td>${r.rod||'—'}</td>
     <td style="text-align:right"><span class="badge ${r.dur>6?'badge-long':'badge-complete'}">${r.dur>0?r.dur.toFixed(1):'—'}</span></td>
-  </tr>`).join('');
+  </tr>`;
+  }).join('');
   document.getElementById('rowCount').textContent = records.length;
 }
 
@@ -926,6 +1063,196 @@ function initFilters() {
   });
   document.getElementById('gfSearch').addEventListener('input', applyFilters);
 }
+
+// ============================================================
+// LITIGATION DATA
+// ============================================================
+const litRecords = (typeof DATA_LITIGATION !== 'undefined' ? DATA_LITIGATION : []).map(r => ({
+  title: r.t||'', plaintiff: r.pl||'', plaintiffType: r.pt||'',
+  agency: r.ag||'', court: r.ct||'', circuit: r.cir||'', state: r.st||'',
+  project: r.proj||'', cat: r.cat||'', docType: r.doc||'',
+  filed: r.filed||'', ruled: r.ruled||'', days: r.days,
+  prev: r.prev||'', disp: r.disp||'', inj: r.inj||false, vac: r.vac||false,
+  src: r.src||''
+}));
+
+function getFilteredLit() {
+  const ag = document.getElementById('litAgency').value;
+  const cir = document.getElementById('litCircuit').value;
+  const prev = document.getElementById('litPrev').value;
+  const yFrom = parseInt(document.getElementById('litYearFrom').value);
+  const yTo = parseInt(document.getElementById('litYearTo').value);
+  const search = document.getElementById('litSearch').value.toLowerCase();
+  return litRecords.filter(r => {
+    if (ag && r.agency !== ag) return false;
+    if (cir && r.circuit !== cir) return false;
+    if (prev && r.prev !== prev) return false;
+    if (r.filed) {
+      const y = parseInt(r.filed.substring(0,4));
+      if (!isNaN(y) && (y < yFrom || y > yTo)) return false;
+    }
+    if (search && !r.title.toLowerCase().includes(search) && !r.project.toLowerCase().includes(search)) return false;
+    return true;
+  });
+}
+
+function resetLitFilters() {
+  document.getElementById('litAgency').value = '';
+  document.getElementById('litCircuit').value = '';
+  document.getElementById('litPrev').value = '';
+  const lf = document.getElementById('litYearFrom');
+  const lt = document.getElementById('litYearTo');
+  lf.value = lf.options[0].value;
+  lt.value = lt.options[lt.options.length-1].value;
+  document.getElementById('litSearch').value = '';
+  applyLitFilters();
+}
+
+function computeLitStats(recs) {
+  const total = recs.length;
+  const withOutcome = recs.filter(r => r.prev === 'Agency' || r.prev === 'Challenger');
+  const agencyWins = withOutcome.filter(r => r.prev === 'Agency').length;
+  const winRate = withOutcome.length > 0 ? (agencyWins / withOutcome.length * 100) : 0;
+  const daysArr = recs.filter(r => r.days > 0).map(r => r.days).sort((a,b) => a-b);
+  const median = daysArr.length > 0
+    ? (daysArr.length % 2 === 0 ? (daysArr[daysArr.length/2-1]+daysArr[daysArr.length/2])/2 : daysArr[Math.floor(daysArr.length/2)])
+    : 0;
+  const injCount = recs.filter(r => r.inj).length;
+  const vacCount = recs.filter(r => r.vac).length;
+  return { total, winRate, medianDays: median, injCount, vacCount };
+}
+
+function applyLitFilters() {
+  const filtered = getFilteredLit();
+  const stats = computeLitStats(filtered);
+
+  // KPIs
+  document.getElementById('litTotal').textContent = stats.total.toLocaleString();
+  document.getElementById('litAgencyWin').textContent = stats.winRate > 0 ? stats.winRate.toFixed(0) + '%' : '—';
+  document.getElementById('litMedianDays').textContent = stats.medianDays > 0 ? (stats.medianDays / 365.25).toFixed(1) + ' yrs' : '—';
+  document.getElementById('litInjunction').textContent = stats.injCount > 0 ? stats.injCount : '—';
+  document.getElementById('litVacatur').textContent = stats.vacCount > 0 ? stats.vacCount : '—';
+
+  // Cases by year
+  const byYear = {};
+  filtered.forEach(r => {
+    if (!r.filed) return;
+    const y = parseInt(r.filed.substring(0,4));
+    if (isNaN(y)) return;
+    if (!byYear[y]) byYear[y] = [];
+    byYear[y].push(r);
+  });
+  const litYears = Object.keys(byYear).map(Number).sort();
+  const litCounts = litYears.map(y => byYear[y].length);
+
+  updateChart('chartLitByYear', 'bar', {
+    labels: litYears,
+    datasets: [{ label:'Cases Filed', data: litCounts, backgroundColor: ORANGE, borderRadius: 4 }]
+  }, { plugins:{legend:{display:false}}, scales: makeScaleOpts(null, 'Count') });
+
+  // Win rate by year
+  const winRates = litYears.map(y => {
+    const yRecs = byYear[y];
+    const wo = yRecs.filter(r => r.prev === 'Agency' || r.prev === 'Challenger');
+    if (wo.length < 3) return null;
+    return (wo.filter(r => r.prev === 'Agency').length / wo.length * 100);
+  });
+
+  updateChart('chartLitWinRate', 'line', {
+    labels: litYears,
+    datasets: [{ label:'Agency Win Rate %', data: winRates, borderColor: BLUE, fill:false, tension:0.3, pointRadius:3, spanGaps: true }]
+  }, { scales: { ...makeScaleOpts(null, '%'), y: { ...makeScaleOpts(null, '%').y, min:0, max:100 } } });
+
+  // By agency
+  const byAgency = {};
+  filtered.forEach(r => {
+    if (!r.agency) return;
+    byAgency[r.agency] = (byAgency[r.agency]||0) + 1;
+  });
+  const agencyEntries = Object.entries(byAgency).sort((a,b) => b[1]-a[1]);
+  const topAgencies = agencyEntries.slice(0, 15);
+  if (agencyEntries.length > 15) {
+    const otherCount = agencyEntries.slice(15).reduce((s,e) => s+e[1], 0);
+    topAgencies.push([`Other (${agencyEntries.length-15})`, otherCount]);
+  }
+
+  updateChart('chartLitAgency', 'bar', {
+    labels: topAgencies.map(e => e[0]),
+    datasets: [{ label:'Cases', data: topAgencies.map(e => e[1]), backgroundColor: ORANGE, borderRadius: 4 }]
+  }, { indexAxis:'y', plugins:{legend:{display:false}}, scales: makeScaleOpts('Count', null) });
+
+  // By category
+  const byCat = {};
+  filtered.forEach(r => {
+    const c = r.cat || 'Uncategorized';
+    byCat[c] = (byCat[c]||0) + 1;
+  });
+  const catEntries = Object.entries(byCat).sort((a,b) => b[1]-a[1]);
+
+  updateChart('chartLitCategory', 'bar', {
+    labels: catEntries.map(e => e[0]),
+    datasets: [{ label:'Cases', data: catEntries.map(e => e[1]), backgroundColor: BLUE, borderRadius: 4 }]
+  }, { indexAxis:'y', plugins:{legend:{display:false}}, scales: makeScaleOpts('Count', null) });
+
+  // Table
+  renderLitTable(filtered);
+}
+
+function renderLitTable(records) {
+  const tbody = document.getElementById('litBody');
+  tbody.innerHTML = records.map(r => {
+    const durationStr = r.days > 0 ? (r.days / 365.25).toFixed(1) + ' yrs' : '—';
+    const outcomeStr = r.prev ? `${r.prev}${r.disp ? ' — ' + r.disp : ''}` : (r.disp || '—');
+    const badgeClass = r.prev === 'Agency' ? 'badge-complete' : r.prev === 'Challenger' ? 'badge-long' : 'badge-underway';
+    return `<tr>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis" title="${r.title}">${r.title}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis" title="${r.plaintiff}">${r.plaintiff || '—'}</td>
+      <td style="white-space:nowrap">${r.agency || '—'}</td>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis" title="${r.court}">${r.court || '—'}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis" title="${r.project}">${r.project || '—'}</td>
+      <td style="white-space:nowrap">${r.filed || '—'}</td>
+      <td style="text-align:right">${durationStr}</td>
+      <td><span class="badge ${badgeClass}">${r.prev || '—'}</span></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('litRowCount').textContent = records.length;
+}
+
+function initLitFilters() {
+  // Agencies
+  const litAgencies = [...new Set(litRecords.map(r => r.agency).filter(Boolean))].sort();
+  const agSel = document.getElementById('litAgency');
+  litAgencies.forEach(a => agSel.appendChild(Object.assign(document.createElement('option'),{value:a,textContent:a})));
+
+  // Circuits
+  const circuits = [...new Set(litRecords.map(r => r.circuit).filter(Boolean))].sort((a,b) => {
+    const na = parseInt(a), nb = parseInt(b);
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+    return a.localeCompare(b);
+  });
+  const cirSel = document.getElementById('litCircuit');
+  circuits.forEach(c => cirSel.appendChild(Object.assign(document.createElement('option'),{value:c,textContent:c})));
+
+  // Year range
+  const litYears = litRecords.map(r => r.filed ? parseInt(r.filed.substring(0,4)) : NaN).filter(y => !isNaN(y));
+  const litMin = Math.min(...litYears), litMax = Math.max(...litYears, 2026);
+  const yfSel = document.getElementById('litYearFrom');
+  const ytSel = document.getElementById('litYearTo');
+  for (let y = litMin; y <= litMax; y++) {
+    yfSel.appendChild(Object.assign(document.createElement('option'),{value:y,textContent:y}));
+    ytSel.appendChild(Object.assign(document.createElement('option'),{value:y,textContent:y}));
+  }
+  yfSel.value = String(litMin); ytSel.value = String(litMax);
+
+  // Wire events
+  ['litAgency','litCircuit','litPrev','litYearFrom','litYearTo'].forEach(id => {
+    document.getElementById(id).addEventListener('change', applyLitFilters);
+  });
+  document.getElementById('litSearch').addEventListener('input', applyLitFilters);
+}
+
+initLitFilters();
+applyLitFilters();
 
 initFilters();
 applyFilters();
