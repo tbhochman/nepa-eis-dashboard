@@ -615,7 +615,8 @@
     <div style="margin-top:0.75rem;font-family:'IBM Plex Sans',sans-serif;font-size:0.75rem;color:var(--muted)">
       Showing <span id="litRowCount">0</span> litigation records.
       Source: <a href="https://navigatingnepa.com/" target="_blank" style="color:var(--orange)">Navigating NEPA / Breakthrough Institute</a> (2012–2022) &amp;
-      <a href="https://www.courtlistener.com/" target="_blank" style="color:var(--orange)">CourtListener</a> (2023–2026).
+      <a href="https://www.courtlistener.com/" target="_blank" style="color:var(--orange)">CourtListener</a> (2022–2026).
+      Note: BTI data (2012–2022) is comprehensively hand-curated; CourtListener data (2022+) is keyword-matched from published opinions and less complete. Case volumes before 2012 and after 2022 reflect data availability, not actual litigation trends. Duration data available for BTI cases only.
     </div>
   </div>
 
@@ -1084,13 +1085,14 @@ function getFilteredLit() {
   const yTo = parseInt(document.getElementById('litYearTo').value);
   const search = document.getElementById('litSearch').value.toLowerCase();
   return litRecords.filter(r => {
+    // Enforce 2010 minimum regardless of filter setting
+    if (r.filed) {
+      const y = parseInt(r.filed.substring(0,4));
+      if (!isNaN(y) && (y < Math.max(yFrom, 2010) || y > yTo)) return false;
+    } else { return false; }
     if (ag && r.agency !== ag) return false;
     if (cir && r.circuit !== cir) return false;
     if (prev && r.prev !== prev) return false;
-    if (r.filed) {
-      const y = parseInt(r.filed.substring(0,4));
-      if (!isNaN(y) && (y < yFrom || y > yTo)) return false;
-    }
     if (search && !r.title.toLowerCase().includes(search) && !r.project.toLowerCase().includes(search)) return false;
     return true;
   });
@@ -1234,8 +1236,7 @@ function initLitFilters() {
   circuits.forEach(c => cirSel.appendChild(Object.assign(document.createElement('option'),{value:c,textContent:c})));
 
   // Year range
-  const litYears = litRecords.map(r => r.filed ? parseInt(r.filed.substring(0,4)) : NaN).filter(y => !isNaN(y));
-  const litMin = Math.min(...litYears), litMax = Math.max(...litYears, 2026);
+  const litMin = 2010, litMax = 2026;
   const yfSel = document.getElementById('litYearFrom');
   const ytSel = document.getElementById('litYearTo');
   for (let y = litMin; y <= litMax; y++) {
