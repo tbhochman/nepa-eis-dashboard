@@ -389,7 +389,7 @@
       <select id="gfAgency"><option value="">All Agencies</option></select>
     </div>
     <div class="filter-group">
-      <label>Year (FEIS) From</label>
+      <label>FEIS Year From</label>
       <select id="gfYearFrom"></select>
     </div>
     <div class="filter-group">
@@ -469,6 +469,16 @@
 
   <!-- Completed Table -->
   <div class="section-title">Completed EIS Records (FEIS Published)</div>
+  <div class="global-filters" style="margin-bottom:0.5rem;padding:0.75rem 1.25rem">
+    <div class="filter-group">
+      <label>NOI Year From</label>
+      <select id="gfNoiFrom"></select>
+    </div>
+    <div class="filter-group">
+      <label>To</label>
+      <select id="gfNoiTo"></select>
+    </div>
+  </div>
   <div class="card">
     <div class="table-wrap">
       <table id="completedTable">
@@ -575,12 +585,18 @@ function getFilteredCompleted() {
   const yFrom = parseInt(document.getElementById('gfYearFrom').value);
   const yTo = parseInt(document.getElementById('gfYearTo').value);
   const search = document.getElementById('gfSearch').value.toLowerCase();
+  const noiFrom = parseInt(document.getElementById('gfNoiFrom').value);
+  const noiTo = parseInt(document.getElementById('gfNoiTo').value);
   return completedRecords.filter(r => {
     if (agency && r.agency !== agency) return false;
     if (cat && r.cat !== cat) return false;
     if (r.feis) {
       const feisYear = parseInt(r.feis.substring(0,4));
       if (!isNaN(feisYear) && (feisYear < yFrom || feisYear > yTo)) return false;
+    }
+    if (r.noi && !isNaN(noiFrom) && !isNaN(noiTo)) {
+      const noiYear = parseInt(r.noi.substring(0,4));
+      if (!isNaN(noiYear) && (noiYear < noiFrom || noiYear > noiTo)) return false;
     }
     if (search && !r.name.toLowerCase().includes(search)) return false;
     return true;
@@ -600,8 +616,11 @@ function getFilteredUnderway() {
 }
 
 function isFilterActive() {
+  const noiSel = document.getElementById('gfNoiFrom');
+  const noiSelTo = document.getElementById('gfNoiTo');
   return document.getElementById('gfAgency').value || document.getElementById('gfCategory').value || document.getElementById('gfSearch').value ||
-    document.getElementById('gfYearFrom').value !== '2010' || document.getElementById('gfYearTo').value !== '2026';
+    document.getElementById('gfYearFrom').value !== '2010' || document.getElementById('gfYearTo').value !== '2026' ||
+    noiSel.value !== noiSel.options[0].value || noiSelTo.value !== noiSelTo.options[noiSelTo.options.length-1].value;
 }
 
 function resetFilters() {
@@ -610,6 +629,10 @@ function resetFilters() {
   document.getElementById('gfSearch').value = '';
   document.getElementById('gfYearFrom').value = '2010';
   document.getElementById('gfYearTo').value = '2026';
+  const noiSel = document.getElementById('gfNoiFrom');
+  const noiSelTo = document.getElementById('gfNoiTo');
+  noiSel.value = noiSel.options[0].value;
+  noiSelTo.value = noiSelTo.options[noiSelTo.options.length-1].value;
   applyFilters();
 }
 
@@ -886,8 +909,19 @@ function initFilters() {
   }
   yFrom.value = '2010'; yTo.value = '2026';
 
+  // NOI year filter
+  const noiFrom = document.getElementById('gfNoiFrom');
+  const noiTo = document.getElementById('gfNoiTo');
+  const noiYears = completedRecords.map(r => r.noi ? parseInt(r.noi.substring(0,4)) : NaN).filter(y => !isNaN(y));
+  const noiMin = Math.min(...noiYears), noiMax = Math.max(...noiYears);
+  for (let y=noiMin; y<=noiMax; y++) {
+    noiFrom.appendChild(Object.assign(document.createElement('option'),{value:y,textContent:y}));
+    noiTo.appendChild(Object.assign(document.createElement('option'),{value:y,textContent:y}));
+  }
+  noiFrom.value = String(noiMin); noiTo.value = String(noiMax);
+
   // Wire up filter change events
-  ['gfAgency','gfCategory','gfYearFrom','gfYearTo'].forEach(id => {
+  ['gfAgency','gfCategory','gfYearFrom','gfYearTo','gfNoiFrom','gfNoiTo'].forEach(id => {
     document.getElementById(id).addEventListener('change', applyFilters);
   });
   document.getElementById('gfSearch').addEventListener('input', applyFilters);
