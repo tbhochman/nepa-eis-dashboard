@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NEPA EIS Timeline Tracker — Foundation for American Innovation</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4"></script>
+<script src="data.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@400;700&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
 <style>
@@ -547,14 +548,11 @@
 
 <script>
 // ============================================================
-// DATA
+// DATA — loaded from data.js (CEQ EIS Timeline Data, 1,903 records)
 // ============================================================
-const completedRecords = [
-  {name:'Custer Gallatin Forest Plan Revision',agency:'USFS',cat:'Land & Resource Mgmt',state:'MT',noi:'2014-03-12',rod:'2020-01-30',dur:5.9},
-  {name:'Flathead National Forest Plan',agency:'USFS',cat:'Land & Resource Mgmt',state:'MT',noi:'2014-06-15',rod:'2018-11-15',dur:4.4},
-  {name:'Nez Perce-Clearwater Forest Plan',agency:'USFS',cat:'Land & Resource Mgmt',state:'ID',noi:'2014-03-21',rod:'2024-07-12',dur:10.3},
-  {name:'Rio Grande Natl Forest Plan Revision',agency:'USFS',cat:'Land & Resource Mgmt',state:'CO',noi:'2015-09-10',rod:'2020-06-25',dur:4.8},
-  {name:'Helena-Lewis & Clark Forest Plan',agency:'USFS',cat:'Land & Resource Mgmt',state:'MT',noi:'2016-01-20',rod:'2021-04-15',dur:5.2},
+const completedRecords = DATA_COMPLETED.map(r => ({name:r.n, agency:r.a, cat:r.c, state:r.s, noi:r.noi, rod:r.rod, dur:r.d}));
+const underwayRecords = DATA_UNDERWAY.map(r => ({name:r.n, agency:r.a, cat:r.c, state:r.s, noi:r.noi, latest:r.l, elapsed:r.e}));
+/* OLD DATA REMOVED - START
   {name:'Tongass Natl Forest Plan Amendment',agency:'USFS',cat:'Land & Resource Mgmt',state:'AK',noi:'2018-08-15',rod:'2021-11-23',dur:3.3},
   {name:'Ashley Natl Forest Oil & Gas Leasing',agency:'USFS',cat:'Energy (Fossil)',state:'UT',noi:'2015-05-01',rod:'2019-03-22',dur:3.9},
   {name:'Black Hills Mtn Pine Beetle Response',agency:'USFS',cat:'Land & Resource Mgmt',state:'SD',noi:'2011-07-08',rod:'2014-01-10',dur:2.5},
@@ -698,8 +696,7 @@ const underwayRecords = [
   {name:'Cape Wind (Revised Proposal)',agency:'BOEM',cat:'Energy (Renewable)',state:'MA',noi:'2022-11-04',latest:'Scoping (2024)',elapsed:3.3},
   {name:'Wheatridge Renewable III',agency:'BLM',cat:'Energy (Renewable)',state:'OR',noi:'2023-03-17',latest:'DEIS (2025)',elapsed:3.0},
   {name:'Camp Lejeune Water Treatment',agency:'DOD',cat:'Defense & Military',state:'NC',noi:'2021-05-14',latest:'DEIS (2024)',elapsed:4.8},
-  {name:'I-90 Snoqualmie Pass East',agency:'FHWA',cat:'Transportation',state:'WA',noi:'2005-03-18',latest:'Suppl. FEIS (2023)',elapsed:21.0},
-];
+OLD DATA REMOVED - END */
 
 // ============================================================
 // CHART INSTANCES (stored for redraws)
@@ -870,12 +867,26 @@ function applyFilters() {
     return { agency: a, count: recs.length, median: med };
   }).sort((a,b) => b.count - a.count);
 
+  // Show top 15 agencies (rest grouped as "Other") for readability
+  const TOP_N = 15;
+  const topAgencies = agencyEntries.slice(0, TOP_N);
+  if (agencyEntries.length > TOP_N) {
+    const rest = agencyEntries.slice(TOP_N);
+    const restCount = rest.reduce((s,a) => s+a.count, 0);
+    const restDurs = rest.flatMap(a => {
+      const recs = byAgency[a.agency] || [];
+      return recs.map(r=>r.dur);
+    }).sort((a,b)=>a-b);
+    const restMed = restDurs.length%2===0 ? (restDurs[restDurs.length/2-1]+restDurs[restDurs.length/2])/2 : restDurs[Math.floor(restDurs.length/2)];
+    topAgencies.push({ agency: 'Other ('+rest.length+')', count: restCount, median: restMed||0 });
+  }
+
   updateChart('chartAgencyVolume', 'bar', {
-    labels: agencyEntries.map(a=>a.agency),
-    datasets: [{ label:'EIS Count', data: agencyEntries.map(a=>a.count), backgroundColor: ORANGE, borderRadius: 4 }]
+    labels: topAgencies.map(a=>a.agency),
+    datasets: [{ label:'EIS Count', data: topAgencies.map(a=>a.count), backgroundColor: ORANGE, borderRadius: 4 }]
   }, { indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{...makeScaleOpts('Count').x}, y:{ticks:{color:WHITE,font:{size:11}},grid:{color:'rgba(255,255,255,0.06)'}}} });
 
-  const agencySorted = [...agencyEntries].sort((a,b) => b.median - a.median);
+  const agencySorted = [...topAgencies].sort((a,b) => b.median - a.median);
   updateChart('chartAgencyDuration', 'bar', {
     labels: agencySorted.map(a=>a.agency),
     datasets: [{ label:'Median (yrs)', data: agencySorted.map(a=>a.median), backgroundColor: BLUE, borderRadius: 4 }]
