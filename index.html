@@ -737,7 +737,7 @@ function applyFilters() {
       { label:'Mean', data: durMeans, borderColor: ORANGE, fill:false, tension:0.3, pointRadius:3 },
       { label:'Median', data: durMedians, borderColor: BLUE, fill:false, tension:0.3, pointRadius:3 }
     ]
-  }, { scales: makeScaleOpts(null, 'Years') });
+  }, { scales: { ...makeScaleOpts(null, 'Years'), y: { ...makeScaleOpts(null, 'Years').y, suggestedMax: 5.5 } } });
 
   updateChart('chartUnder2yr', 'bar', {
     labels: durYears,
