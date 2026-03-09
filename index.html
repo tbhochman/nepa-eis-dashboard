@@ -208,7 +208,7 @@
     font-size: 0.75rem;
     margin-left: 0.5rem;
   }
-  .chart-container { position: relative; width: 100%; height: 320px; }
+  .chart-container { position: relative; width: 100%; height: 360px; }
   .chart-container.tall { height: 420px; }
 
   /* Tables */
@@ -436,7 +436,7 @@
       <div class="chart-container"><canvas id="chartMeanMedian"></canvas></div>
     </div>
     <div class="card">
-      <h2>% Completed Within 2 Years <small>(by FEIS year)</small></h2>
+      <h2>% Completed Within 2 Years</h2>
       <div class="chart-container"><canvas id="chartUnder2yr"></canvas></div>
     </div>
   </div>
@@ -445,7 +445,7 @@
   <div class="section-title">By Lead Agency</div>
   <div class="grid-2">
     <div class="card">
-      <h2>EIS Volume by Agency <small>(filtered)</small></h2>
+      <h2>EIS Volume by Agency</h2>
       <div class="chart-container tall"><canvas id="chartAgencyVolume"></canvas></div>
     </div>
     <div class="card">
@@ -913,7 +913,7 @@ function initFilters() {
   const noiFrom = document.getElementById('gfNoiFrom');
   const noiTo = document.getElementById('gfNoiTo');
   const noiYears = completedRecords.map(r => r.noi ? parseInt(r.noi.substring(0,4)) : NaN).filter(y => !isNaN(y));
-  const noiMin = Math.min(...noiYears), noiMax = Math.max(...noiYears);
+  const noiMin = Math.min(...noiYears), noiMax = Math.max(Math.max(...noiYears), 2026);
   for (let y=noiMin; y<=noiMax; y++) {
     noiFrom.appendChild(Object.assign(document.createElement('option'),{value:y,textContent:y}));
     noiTo.appendChild(Object.assign(document.createElement('option'),{value:y,textContent:y}));
