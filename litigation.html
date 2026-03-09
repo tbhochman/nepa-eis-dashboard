@@ -402,10 +402,10 @@
     <span class="beta-tag">Beta</span>
     <div class="beta-text">
       <strong>This litigation dataset is incomplete and actively being expanded.</strong>
-      Core data (2012&ndash;2022) comes from the Breakthrough Institute's hand-curated <em>Navigating NEPA</em> database of ~1,800 cases.
-      Coverage for 2010&ndash;2012 and 2022&ndash;2026 is supplemented via CourtListener keyword-matched published opinions and is substantially less complete.
-      Case volumes outside the 2012&ndash;2022 window reflect data availability, not actual litigation trends.
-      Duration data is available for BTI cases only.
+      Core data (2012&ndash;2022) comes from the Breakthrough Institute's hand-curated <em>Navigating NEPA</em> database of ~1,800 cases with full metadata including plaintiffs, prevailing party, and project details.
+      Coverage for 2010&ndash;2012 and 2022&ndash;2026 is supplemented via CourtListener federal court docket records.
+      CL-sourced cases include filing/termination dates (enabling duration calculation) but may lack plaintiff details and outcome data.
+      Case volumes outside the 2012&ndash;2022 window may still undercount actual litigation.
     </div>
   </div>
 
@@ -496,8 +496,8 @@
   <div class="source-note">
     <strong>Data Sources &amp; Methodology:</strong><br>
     Primary litigation data from <a href="https://navigatingnepa.com/" target="_blank">Navigating NEPA</a> (Breakthrough Institute / Holland &amp; Knight), covering ~1,800 hand-curated NEPA cases from 2012&ndash;2022 with full metadata including plaintiffs, agencies, courts, project names, prevailing party, and days in litigation.<br>
-    Supplemented with federal court opinions from <a href="https://www.courtlistener.com/" target="_blank">CourtListener</a> (Free Law Project) for 2022&ndash;2026 coverage via keyword matching on "National Environmental Policy Act" and related statutory references.<br>
-    Agency win rate calculated as percentage of cases with a clear NEPA-claim outcome where the agency prevailed. Duration reflects days from challenge filing to court ruling (BTI data only).<br>
+    Supplemented with ~1,600 federal court docket records from <a href="https://www.courtlistener.com/" target="_blank">CourtListener</a> (Free Law Project) for 2010&ndash;2012 and 2022&ndash;2026 coverage, sourced via NEPA cause-of-action codes, nature-of-suit codes, and statutory keyword matching on federal court dockets.<br>
+    Agency win rate calculated as percentage of cases with a clear NEPA-claim outcome where the agency prevailed. Duration reflects days from case filing to termination/ruling.<br>
     This dataset is actively being expanded. Contributions and corrections welcome.
   </div>
 </div>
