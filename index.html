@@ -538,8 +538,6 @@
     <div class="kpi"><div class="value" id="litTotal">—</div><div class="label">Total Cases</div></div>
     <div class="kpi blue"><div class="value" id="litAgencyWin">—</div><div class="label">Agency Win Rate</div></div>
     <div class="kpi yellow"><div class="value" id="litMedianDays">—</div><div class="label">Median Duration</div></div>
-    <div class="kpi"><div class="value" id="litInjunction">—</div><div class="label">Injunctive Relief</div></div>
-    <div class="kpi timber"><div class="value" id="litVacatur">—</div><div class="label">Remand w/ Vacatur</div></div>
   </div>
 
   <!-- Litigation Charts -->
@@ -1132,8 +1130,6 @@ function applyLitFilters() {
   document.getElementById('litTotal').textContent = stats.total.toLocaleString();
   document.getElementById('litAgencyWin').textContent = stats.winRate > 0 ? stats.winRate.toFixed(0) + '%' : '—';
   document.getElementById('litMedianDays').textContent = stats.medianDays > 0 ? (stats.medianDays / 365.25).toFixed(1) + ' yrs' : '—';
-  document.getElementById('litInjunction').textContent = stats.injCount > 0 ? stats.injCount : '—';
-  document.getElementById('litVacatur').textContent = stats.vacCount > 0 ? stats.vacCount : '—';
 
   // Cases by year
   const byYear = {};
