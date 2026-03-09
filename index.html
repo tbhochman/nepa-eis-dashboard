@@ -253,7 +253,7 @@
   .badge-complete { background: rgba(73,151,208,0.15); color: var(--blue); }
   .badge-underway { background: rgba(255,163,0,0.15); color: var(--yellow); }
   .badge-long { background: rgba(255,79,0,0.15); color: var(--orange); }
-  .badge-challenged { background: rgba(255,163,0,0.12); color: var(--yellow); font-size: 0.6rem; cursor: pointer; text-decoration: none; }
+  .badge-challenged { background: rgba(255,163,0,0.12); color: var(--yellow); font-size: 0.6rem; }
 
   /* Navigation Tabs */
   .nav-tabs {
@@ -412,10 +412,11 @@
     </div>
     <h1>NEPA EIS Dashboard</h1>
     <div class="subtitle">Environmental Impact Statement Timelines & Litigation Tracking</div>
-    <nav class="nav-tabs">
+    <!-- Nav tabs hidden while litigation page is in development -->
+    <!--<nav class="nav-tabs">
       <a class="nav-tab active" href="index.html">EIS Timelines</a>
       <a class="nav-tab" href="litigation.html">Litigation</a>
-    </nav>
+    </nav>-->
   </div>
 </div>
 
@@ -937,7 +938,7 @@ function renderCompletedTable(records) {
   const tbody = document.getElementById('completedBody');
   tbody.innerHTML = records.map(r => {
     const isChallenged = challengedEIS.has(r.name);
-    const challengeBadge = isChallenged ? '<a href="litigation.html" class="badge badge-challenged" title="This EIS was challenged in court — click to view litigation data" style="flex-shrink:0">⚖ Challenged</a>' : '';
+    const challengeBadge = isChallenged ? '<span class="badge badge-challenged" title="This EIS was challenged in court" style="flex-shrink:0">⚖ Challenged</span>' : '';
     const nameCell = isChallenged
       ? `<td style="max-width:300px" title="${r.name}"><div style="display:flex;align-items:center;gap:6px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name}</span>${challengeBadge}</div></td>`
       : `<td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.name}">${r.name}</td>`;
