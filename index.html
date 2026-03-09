@@ -378,8 +378,9 @@
     <h1>NEPA EIS Timeline Tracker</h1>
     <div class="subtitle">Environmental Impact Statement Completion Timelines: Notice of Intent (NOI) to Record of Decision (ROD)</div>
     <div class="header-tags">
-      <span>Data: 2010 – March 2025</span>
+      <span>Data: 2010 – March 2026</span>
       <span>Source: CEQ EIS Timeline Reports &amp; EPA EIS Database</span>
+      <span>2,070 EIS Records</span>
     </div>
   </div>
 </div>
@@ -541,163 +542,18 @@
   <div class="source-note">
     <strong>Data Sources &amp; Methodology:</strong><br>
     Primary data from <a href="https://ceq.doe.gov/nepa-practice/eis-timelines.html" target="_blank">CEQ EIS Timeline Reports (2025)</a> covering 1,903 EISs with FEIS published 2010–2024.<br>
-    Supplemented with <a href="https://cdxapps.epa.gov/cdx-enepa-II/public/action/eis/search" target="_blank">EPA EIS Database</a> records for currently underway projects.<br>
-    Timeline = calendar days from NOI publication in Federal Register to ROD signature. Project categories assigned based on lead agency mission and project description.
+    Supplemented with records from <a href="https://cdxapps.epa.gov/cdx-enepa-II/public/action/eis/search" target="_blank">EPA EIS Database</a> for 2025–2026 filings.<br>
+    Timeline = calendar days from NOI publication in Federal Register to ROD signature. EPA-supplemented records may show "—" for NOI date and duration where data is unavailable.<br>
+    Project categories assigned based on lead agency mission and project description.
   </div>
 </div>
 
 <script>
 // ============================================================
-// DATA — loaded from data.js (CEQ EIS Timeline Data, 1,903 records)
+// DATA — loaded from data.js (CEQ 2010-2024 + EPA 2025 supplement)
 // ============================================================
 const completedRecords = DATA_COMPLETED.map(r => ({name:r.n, agency:r.a, cat:r.c, state:r.s, noi:r.noi, rod:r.rod, dur:r.d}));
 const underwayRecords = DATA_UNDERWAY.map(r => ({name:r.n, agency:r.a, cat:r.c, state:r.s, noi:r.noi, latest:r.l, elapsed:r.e}));
-/* OLD DATA REMOVED - START
-  {name:'Tongass Natl Forest Plan Amendment',agency:'USFS',cat:'Land & Resource Mgmt',state:'AK',noi:'2018-08-15',rod:'2021-11-23',dur:3.3},
-  {name:'Ashley Natl Forest Oil & Gas Leasing',agency:'USFS',cat:'Energy (Fossil)',state:'UT',noi:'2015-05-01',rod:'2019-03-22',dur:3.9},
-  {name:'Black Hills Mtn Pine Beetle Response',agency:'USFS',cat:'Land & Resource Mgmt',state:'SD',noi:'2011-07-08',rod:'2014-01-10',dur:2.5},
-  {name:'Chequamegon-Nicolet Forest Plan',agency:'USFS',cat:'Land & Resource Mgmt',state:'WI',noi:'2017-02-14',rod:'2020-09-18',dur:3.6},
-  {name:'Manti-La Sal Forest Plan Revision',agency:'USFS',cat:'Land & Resource Mgmt',state:'UT',noi:'2017-10-20',rod:'2022-08-05',dur:4.8},
-  {name:'Santa Fe National Forest Plan',agency:'USFS',cat:'Land & Resource Mgmt',state:'NM',noi:'2015-11-06',rod:'2022-06-17',dur:6.6},
-  {name:'Sierra Natl Forest Vegetation Mgmt',agency:'USFS',cat:'Land & Resource Mgmt',state:'CA',noi:'2019-03-15',rod:'2022-01-20',dur:2.9},
-  {name:'Dixie Natl Forest Travel Mgmt',agency:'USFS',cat:'Recreation & Parks',state:'UT',noi:'2012-04-12',rod:'2015-06-19',dur:3.2},
-  {name:'Gemini Solar Project',agency:'BLM',cat:'Energy (Renewable)',state:'NV',noi:'2018-03-01',rod:'2020-05-28',dur:2.2},
-  {name:'Willow Master Development Plan',agency:'BLM',cat:'Energy (Fossil)',state:'AK',noi:'2018-08-20',rod:'2023-03-13',dur:4.6},
-  {name:'Greater Sage-Grouse Land Use Plan',agency:'BLM',cat:'Wildlife & Habitat',state:'WY',noi:'2011-12-09',rod:'2015-09-22',dur:3.8},
-  {name:'Rosemont Copper Mine',agency:'USFS',cat:'Mining & Minerals',state:'AZ',noi:'2008-07-14',rod:'2017-06-07',dur:8.9},
-  {name:'Solar Star Energy Center',agency:'BLM',cat:'Energy (Renewable)',state:'CA',noi:'2010-01-15',rod:'2012-07-24',dur:2.5},
-  {name:'Crimson Solar Project',agency:'BLM',cat:'Energy (Renewable)',state:'CA',noi:'2019-06-01',rod:'2021-05-03',dur:1.9},
-  {name:'Lava Ridge Wind Project',agency:'BLM',cat:'Energy (Renewable)',state:'ID',noi:'2021-06-01',rod:'2024-12-19',dur:3.6},
-  {name:'Western Solar Plan Programmatic',agency:'BLM',cat:'Energy (Renewable)',state:'Multi',noi:'2023-01-17',rod:'2025-01-15',dur:2.0},
-  {name:'Alton Coal Tract Lease',agency:'BLM',cat:'Mining & Minerals',state:'UT',noi:'2011-04-15',rod:'2018-12-14',dur:7.7},
-  {name:'Gateway West Transmission Line',agency:'BLM',cat:'Energy (Fossil)',state:'WY/ID',noi:'2007-12-14',rod:'2013-11-14',dur:5.9},
-  {name:'Boardman to Hemingway Transmission',agency:'BLM',cat:'Energy (Fossil)',state:'OR/ID',noi:'2010-05-28',rod:'2023-11-17',dur:13.5},
-  {name:'Traverse Wind Energy Center',agency:'BLM',cat:'Energy (Renewable)',state:'OK',noi:'2019-02-14',rod:'2021-08-30',dur:2.5},
-  {name:'BLM Rock Springs RMP Revision',agency:'BLM',cat:'Land & Resource Mgmt',state:'WY',noi:'2011-05-20',rod:'2015-06-26',dur:4.1},
-  {name:'Miles City RMP Amendment',agency:'BLM',cat:'Land & Resource Mgmt',state:'MT',noi:'2013-11-08',rod:'2019-04-19',dur:5.4},
-  {name:'Desert Quartzite Solar Project',agency:'BLM',cat:'Energy (Renewable)',state:'CA',noi:'2019-01-25',rod:'2021-09-22',dur:2.7},
-  {name:'I-11 Corridor Tier 1',agency:'FHWA',cat:'Transportation',state:'AZ',noi:'2015-04-17',rod:'2021-07-21',dur:6.3},
-  {name:'I-69 Section of Indep. Utility 2',agency:'FHWA',cat:'Transportation',state:'IN',noi:'2004-01-23',rod:'2013-08-30',dur:9.6},
-  {name:'Mid-Currituck Bridge Study',agency:'FHWA',cat:'Transportation',state:'NC',noi:'2008-11-14',rod:'2019-09-30',dur:10.9},
-  {name:'Purple Line Light Rail',agency:'FTA',cat:'Transportation',state:'MD',noi:'2003-10-24',rod:'2014-03-19',dur:10.4},
-  {name:'CA High-Speed Rail Merced-Fresno',agency:'FHWA',cat:'Transportation',state:'CA',noi:'2009-06-12',rod:'2012-09-18',dur:3.3},
-  {name:'Southwest LRT (Green Line Ext)',agency:'FTA',cat:'Transportation',state:'MN',noi:'2008-07-18',rod:'2016-05-09',dur:7.8},
-  {name:'I-70 East Corridor',agency:'FHWA',cat:'Transportation',state:'CO',noi:'2003-10-01',rod:'2016-01-19',dur:12.3},
-  {name:'Cross Bronx Expressway',agency:'FHWA',cat:'Transportation',state:'NY',noi:'2012-09-14',rod:'2019-07-25',dur:6.9},
-  {name:'Brent Spence Bridge Corridor',agency:'FHWA',cat:'Transportation',state:'OH/KY',noi:'2021-02-19',rod:'2024-05-24',dur:3.3},
-  {name:'I-495 & I-270 Managed Lanes',agency:'FHWA',cat:'Transportation',state:'MD',noi:'2018-06-15',rod:'2022-06-03',dur:4.0},
-  {name:'Houston-Dallas High Speed Rail',agency:'FHWA',cat:'Transportation',state:'TX',noi:'2014-07-25',rod:'2020-09-14',dur:6.1},
-  {name:'Fargo-Moorhead Flood Risk Mgmt',agency:'USACE',cat:'Water Infrastructure',state:'ND/MN',noi:'2008-11-21',rod:'2012-08-17',dur:3.7},
-  {name:'Dakota Access Pipeline (DAPL)',agency:'USACE',cat:'Energy (Fossil)',state:'Multi',noi:'2015-12-18',rod:'2016-07-25',dur:0.6},
-  {name:'Savannah Harbor Expansion',agency:'USACE',cat:'Water Infrastructure',state:'GA',noi:'1996-04-01',rod:'2012-10-26',dur:16.6},
-  {name:'Mid-Barataria Sediment Diversion',agency:'USACE',cat:'Water Infrastructure',state:'LA',noi:'2018-03-09',rod:'2024-02-16',dur:5.9},
-  {name:'Mountain Valley Pipeline Crossings',agency:'USACE',cat:'Energy (Fossil)',state:'VA/WV',noi:'2017-06-15',rod:'2023-09-08',dur:6.2},
-  {name:'Port of Long Beach Navigation',agency:'USACE',cat:'Water Infrastructure',state:'CA',noi:'2011-03-04',rod:'2014-09-19',dur:3.6},
-  {name:'Everglades Ag Area Reservoir',agency:'USACE',cat:'Water Infrastructure',state:'FL',noi:'2018-10-05',rod:'2024-03-22',dur:5.5},
-  {name:'TX Coastal Storm Risk Mgmt',agency:'USACE',cat:'Water Infrastructure',state:'TX',noi:'2016-01-08',rod:'2021-09-27',dur:5.7},
-  {name:'Vogtle Nuclear Units 3&4',agency:'DOE',cat:'Nuclear',state:'GA',noi:'2006-09-22',rod:'2012-02-10',dur:5.4},
-  {name:'Champlain Hudson Power Express',agency:'DOE',cat:'Energy (Fossil)',state:'NY',noi:'2010-11-05',rod:'2014-08-15',dur:3.8},
-  {name:'Hanford Tank Waste Retrieval',agency:'DOE',cat:'Nuclear',state:'WA',noi:'2012-06-01',rod:'2017-12-08',dur:5.5},
-  {name:'Surplus Plutonium Disposition',agency:'DOE',cat:'Nuclear',state:'SC',noi:'2014-03-21',rod:'2020-09-11',dur:6.5},
-  {name:'TransWest Express Transmission',agency:'DOE',cat:'Energy (Renewable)',state:'WY/CO/UT',noi:'2011-01-14',rod:'2017-01-12',dur:6.0},
-  {name:'Lake Charles LNG Export Terminal',agency:'DOE',cat:'Energy (Fossil)',state:'LA',noi:'2013-09-06',rod:'2016-06-28',dur:2.8},
-  {name:'SunZia Southwest Transmission',agency:'DOE',cat:'Energy (Renewable)',state:'AZ/NM',noi:'2011-06-03',rod:'2023-05-19',dur:11.9},
-  {name:'Mountain Valley Pipeline',agency:'FERC',cat:'Energy (Fossil)',state:'VA/WV',noi:'2015-10-23',rod:'2017-10-13',dur:2.0},
-  {name:'Atlantic Coast Pipeline',agency:'FERC',cat:'Energy (Fossil)',state:'VA/NC/WV',noi:'2015-11-25',rod:'2017-10-13',dur:1.9},
-  {name:'PennEast Pipeline',agency:'FERC',cat:'Energy (Fossil)',state:'PA/NJ',noi:'2015-02-20',rod:'2018-01-19',dur:2.9},
-  {name:'Jordan Cove LNG Terminal',agency:'FERC',cat:'Energy (Fossil)',state:'OR',noi:'2012-07-06',rod:'2020-03-19',dur:7.7},
-  {name:'Northern Natural Gas A-Line',agency:'FERC',cat:'Energy (Fossil)',state:'MN/IA',noi:'2019-05-10',rod:'2021-04-02',dur:1.9},
-  {name:'Fire Island Natl Seashore GMP',agency:'NPS',cat:'Recreation & Parks',state:'NY',noi:'2010-02-19',rod:'2016-12-02',dur:6.8},
-  {name:'Bison Mgmt Plan Yellowstone',agency:'NPS',cat:'Wildlife & Habitat',state:'MT',noi:'2015-02-06',rod:'2024-09-20',dur:9.6},
-  {name:'Glen Canyon Dam LTEMP',agency:'BOR',cat:'Water Infrastructure',state:'AZ',noi:'2011-08-12',rod:'2016-12-15',dur:5.3},
-  {name:'Grand Canyon Backcountry Mgmt',agency:'NPS',cat:'Recreation & Parks',state:'AZ',noi:'2012-01-20',rod:'2019-11-22',dur:7.8},
-  {name:'Cape Hatteras Seashore ORV Mgmt',agency:'NPS',cat:'Recreation & Parks',state:'NC',noi:'2007-03-16',rod:'2012-02-09',dur:4.9},
-  {name:'Golden Gate Dog Mgmt',agency:'NPS',cat:'Recreation & Parks',state:'CA',noi:'2006-04-07',rod:'2017-01-23',dur:10.8},
-  {name:'Mexican Wolf Recovery Plan',agency:'USFWS',cat:'Wildlife & Habitat',state:'AZ/NM',noi:'2013-06-14',rod:'2017-11-30',dur:4.5},
-  {name:'Northern Long-Eared Bat 4(d)',agency:'USFWS',cat:'Wildlife & Habitat',state:'National',noi:'2013-10-02',rod:'2016-01-14',dur:2.3},
-  {name:'Izembek NWR Road',agency:'USFWS',cat:'Transportation',state:'AK',noi:'2010-01-08',rod:'2013-12-23',dur:3.9},
-  {name:'Red Knot Conservation',agency:'USFWS',cat:'Wildlife & Habitat',state:'National',noi:'2013-09-30',rod:'2015-01-12',dur:1.3},
-  {name:'Grizzly Bear Delisting',agency:'USFWS',cat:'Wildlife & Habitat',state:'WY/MT/ID',noi:'2016-03-04',rod:'2017-06-22',dur:1.3},
-  {name:'Gulf OCS Oil & Gas Lease Sale',agency:'BOEM',cat:'Energy (Fossil)',state:'Gulf',noi:'2016-03-18',rod:'2017-03-24',dur:1.0},
-  {name:'Vineyard Wind 1',agency:'BOEM',cat:'Energy (Renewable)',state:'MA',noi:'2017-06-30',rod:'2021-05-10',dur:3.9},
-  {name:'South Fork Wind Farm',agency:'BOEM',cat:'Energy (Renewable)',state:'NY',noi:'2018-10-19',rod:'2022-01-18',dur:3.2},
-  {name:'Ocean Wind 1',agency:'BOEM',cat:'Energy (Renewable)',state:'NJ',noi:'2019-06-21',rod:'2023-07-11',dur:4.1},
-  {name:'Revolution Wind',agency:'BOEM',cat:'Energy (Renewable)',state:'RI/CT',noi:'2019-06-21',rod:'2023-11-21',dur:4.4},
-  {name:'Sunrise Wind',agency:'BOEM',cat:'Energy (Renewable)',state:'NY',noi:'2020-12-04',rod:'2024-03-29',dur:3.3},
-  {name:'Empire Wind 1 & 2',agency:'BOEM',cat:'Energy (Renewable)',state:'NY',noi:'2019-06-07',rod:'2023-11-21',dur:4.5},
-  {name:'Cook Inlet Lease Sale 258',agency:'BOEM',cat:'Energy (Fossil)',state:'AK',noi:'2021-12-30',rod:'2022-10-28',dur:0.8},
-  {name:'Denver Metroplex',agency:'FAA',cat:'Transportation',state:'CO',noi:'2014-09-19',rod:'2020-09-25',dur:6.0},
-  {name:'SpaceX Boca Chica Launch Site',agency:'FAA',cat:'Transportation',state:'TX',noi:'2020-11-23',rod:'2022-06-13',dur:1.6},
-  {name:'Houston Airport System Expansion',agency:'FAA',cat:'Transportation',state:'TX',noi:'2010-04-23',rod:'2015-11-06',dur:5.5},
-  {name:'F-35A Beddown Burlington',agency:'DOD',cat:'Defense & Military',state:'VT',noi:'2012-03-23',rod:'2013-07-26',dur:1.3},
-  {name:'KC-46A Tanker Beddown',agency:'DOD',cat:'Defense & Military',state:'Multi',noi:'2014-01-17',rod:'2016-01-08',dur:2.0},
-  {name:'Guam Military Relocation',agency:'DOD',cat:'Defense & Military',state:'GU',noi:'2006-06-09',rod:'2015-08-28',dur:9.2},
-  {name:'Fort Irwin Land Expansion',agency:'DOD',cat:'Defense & Military',state:'CA',noi:'2010-09-17',rod:'2014-06-20',dur:3.8},
-  {name:'Red Hill Fuel Storage Closure',agency:'DOD',cat:'Defense & Military',state:'HI',noi:'2023-01-20',rod:'2024-11-15',dur:1.8},
-  {name:'Ground-Based Midcourse Defense',agency:'DOD',cat:'Defense & Military',state:'AK',noi:'2016-10-14',rod:'2018-12-14',dur:2.2},
-  {name:'Air Force Weather Training Reloc.',agency:'DOD',cat:'Defense & Military',state:'NE',noi:'2019-08-02',rod:'2021-03-12',dur:1.6},
-  {name:'Marine Corps Air Station Beaufort',agency:'DOD',cat:'Defense & Military',state:'SC',noi:'2017-12-01',rod:'2020-10-23',dur:2.9},
-  {name:'Navy Mariana Islands Training',agency:'DOD',cat:'Defense & Military',state:'GU',noi:'2013-05-10',rod:'2015-07-17',dur:2.2},
-  {name:'Bay Delta Conservation Plan',agency:'BOR',cat:'Water Infrastructure',state:'CA',noi:'2008-01-25',rod:'2020-03-27',dur:12.2},
-  {name:'CO River Interim Guidelines',agency:'BOR',cat:'Water Infrastructure',state:'Multi',noi:'2018-01-19',rod:'2019-05-20',dur:1.3},
-  {name:'WaterSMART Basin Study',agency:'BOR',cat:'Water Infrastructure',state:'Multi',noi:'2015-07-10',rod:'2018-03-16',dur:2.7},
-  {name:'Klamath River Dam Removal',agency:'BOR',cat:'Water Infrastructure',state:'OR/CA',noi:'2016-09-16',rod:'2022-11-17',dur:6.2},
-  {name:'Lake Powell Pipeline',agency:'BOR',cat:'Water Infrastructure',state:'UT',noi:'2020-07-02',rod:'2024-06-14',dur:4.0},
-  {name:'Sites Reservoir Project',agency:'BOR',cat:'Water Infrastructure',state:'CA',noi:'2017-11-17',rod:'2023-11-22',dur:6.0},
-  {name:'Coastal VA Offshore Wind',agency:'BOEM',cat:'Energy (Renewable)',state:'VA',noi:'2020-12-18',rod:'2024-10-25',dur:3.9},
-  {name:'Stibnite Gold Project',agency:'USFS',cat:'Mining & Minerals',state:'ID',noi:'2017-09-22',rod:'2024-08-16',dur:6.9},
-  {name:'Resolution Copper Mine',agency:'USFS',cat:'Mining & Minerals',state:'AZ',noi:'2016-03-18',rod:'2021-01-15',dur:4.8},
-  {name:'NorthMet Copper-Nickel Mine',agency:'USACE',cat:'Mining & Minerals',state:'MN',noi:'2005-03-04',rod:'2019-03-28',dur:14.1},
-  {name:'Pebble Mine',agency:'USACE',cat:'Mining & Minerals',state:'AK',noi:'2017-04-07',rod:'2020-07-24',dur:3.3},
-  {name:'Bear Ears Natl Monument Mgmt',agency:'BLM',cat:'Land & Resource Mgmt',state:'UT',noi:'2019-08-16',rod:'2024-04-12',dur:4.7},
-  {name:'NE Supply Enhancement Pipeline',agency:'FERC',cat:'Energy (Fossil)',state:'NY/NJ',noi:'2016-01-15',rod:'2019-05-03',dur:3.3},
-  {name:'Alaska LNG Project',agency:'FERC',cat:'Energy (Fossil)',state:'AK',noi:'2014-09-05',rod:'2020-07-17',dur:5.9},
-  {name:'New England Wind',agency:'BOEM',cat:'Energy (Renewable)',state:'MA',noi:'2021-10-01',rod:'2025-02-14',dur:3.4},
-  {name:'US Wind Maryland Offshore',agency:'BOEM',cat:'Energy (Renewable)',state:'MD',noi:'2022-03-25',rod:'2025-03-07',dur:3.0},
-];
-
-const underwayRecords = [
-  {name:'I-45 North Houston Hwy Improvement',agency:'FHWA',cat:'Transportation',state:'TX',noi:'2011-06-17',latest:'Suppl. DEIS (2024)',elapsed:14.7},
-  {name:'I-35 Capital Express Central',agency:'FHWA',cat:'Transportation',state:'TX',noi:'2020-08-21',latest:'DEIS (2023)',elapsed:5.6},
-  {name:'Uinta Basin Railway',agency:'STB',cat:'Transportation',state:'UT',noi:'2019-05-17',latest:'FEIS (2024)',elapsed:6.8},
-  {name:'Lake Erie Connector Transmission',agency:'DOE',cat:'Energy (Fossil)',state:'PA',noi:'2016-02-19',latest:'DEIS (2021)',elapsed:10.1},
-  {name:'Palisades Nuclear Plant Restart',agency:'NRC',cat:'Nuclear',state:'MI',noi:'2024-04-15',latest:'Scoping (2024)',elapsed:1.9},
-  {name:'B2H Transmission Line',agency:'BLM',cat:'Energy (Fossil)',state:'OR',noi:'2015-09-04',latest:'FEIS (2022)',elapsed:10.5},
-  {name:'Ambler Mining District Road',agency:'BLM',cat:'Transportation',state:'AK',noi:'2015-07-17',latest:'FEIS (2020)',elapsed:10.6},
-  {name:'NGL Pipeline System',agency:'FERC',cat:'Energy (Fossil)',state:'PA',noi:'2019-11-15',latest:'DEIS (2023)',elapsed:6.3},
-  {name:'Northern Plains CO2 Sequestration',agency:'DOE',cat:'Energy (Fossil)',state:'ND',noi:'2022-06-10',latest:'DEIS (2024)',elapsed:3.7},
-  {name:'F-35A Beddown Tyndall AFB',agency:'DOD',cat:'Defense & Military',state:'FL',noi:'2023-01-27',latest:'DEIS (2024)',elapsed:3.1},
-  {name:'Millennium Bulk Terminals',agency:'USACE',cat:'Mining & Minerals',state:'WA',noi:'2012-08-31',latest:'DEIS (2016)',elapsed:13.5},
-  {name:'Cross-Border Transmission (ND)',agency:'DOE',cat:'Energy (Renewable)',state:'ND',noi:'2023-04-07',latest:'Scoping (2024)',elapsed:2.9},
-  {name:'Central Valley Wye HSR',agency:'FRA',cat:'Transportation',state:'CA',noi:'2013-06-07',latest:'DEIS (2019)',elapsed:12.8},
-  {name:'Coastal Plain Oil & Gas Program',agency:'BLM',cat:'Energy (Fossil)',state:'AK',noi:'2018-04-20',latest:'Suspended (2021)',elapsed:7.9},
-  {name:'Yellowstone Bison Mgmt Plan 2.0',agency:'NPS',cat:'Wildlife & Habitat',state:'MT',noi:'2021-09-10',latest:'DEIS (2024)',elapsed:4.5},
-  {name:'Chuitna Coal Mine',agency:'USACE',cat:'Mining & Minerals',state:'AK',noi:'2006-07-14',latest:'On Hold',elapsed:19.7},
-  {name:'USMC Camp Pendleton Expansion',agency:'DOD',cat:'Defense & Military',state:'CA',noi:'2022-07-08',latest:'DEIS (2024)',elapsed:3.7},
-  {name:'I-10 Mobile River Bridge',agency:'FHWA',cat:'Transportation',state:'AL',noi:'2014-04-04',latest:'Suppl. DEIS (2023)',elapsed:11.9},
-  {name:'Snake River Dams Ops Review',agency:'BOR',cat:'Water Infrastructure',state:'WA/ID',noi:'2021-02-26',latest:'DEIS (2024)',elapsed:5.0},
-  {name:'Santa Teresa Border Infrastructure',agency:'CBP',cat:'Transportation',state:'NM',noi:'2020-09-11',latest:'DEIS (2023)',elapsed:5.5},
-  {name:'ERCOT TX Transmission Expansion',agency:'DOE',cat:'Energy (Renewable)',state:'TX',noi:'2023-08-18',latest:'Scoping (2024)',elapsed:2.6},
-  {name:'Oregon LNG Terminal',agency:'FERC',cat:'Energy (Fossil)',state:'OR',noi:'2012-12-07',latest:'On Hold',elapsed:13.3},
-  {name:'Riley Ridge CO2 Pipeline',agency:'BLM',cat:'Energy (Fossil)',state:'WY',noi:'2014-01-24',latest:'On Hold',elapsed:12.1},
-  {name:'Point Thomson Development',agency:'USACE',cat:'Energy (Fossil)',state:'AK',noi:'2009-04-03',latest:'Suppl. DEIS (2023)',elapsed:16.9},
-  {name:'Grand Parkway Segments H/I',agency:'FHWA',cat:'Transportation',state:'TX',noi:'2017-06-02',latest:'DEIS (2022)',elapsed:8.8},
-  {name:'Maryland Maglev Baltimore-DC',agency:'FRA',cat:'Transportation',state:'MD',noi:'2016-11-18',latest:'DEIS (2021)',elapsed:9.3},
-  {name:'Wind Catcher Generation Tie',agency:'USACE',cat:'Energy (Renewable)',state:'OK',noi:'2020-01-10',latest:'DEIS (2023)',elapsed:6.2},
-  {name:'Natl Forests Climate Adaptation',agency:'USFS',cat:'Land & Resource Mgmt',state:'National',noi:'2023-09-22',latest:'Scoping (2024)',elapsed:2.5},
-  {name:'Port Arthur LNG Phase 2',agency:'FERC',cat:'Energy (Fossil)',state:'TX',noi:'2022-04-15',latest:'DEIS (2024)',elapsed:3.9},
-  {name:'Libby Asbestos Superfund OU6',agency:'EPA',cat:'Other',state:'MT',noi:'2017-03-10',latest:'DEIS (2022)',elapsed:9.0},
-  {name:'I-526 Lowcountry Corridor West',agency:'FHWA',cat:'Transportation',state:'SC',noi:'2019-09-13',latest:'DEIS (2024)',elapsed:6.5},
-  {name:'Pacific NW Hydrogen Hub',agency:'DOE',cat:'Energy (Renewable)',state:'WA/OR',noi:'2024-02-09',latest:'Scoping (2024)',elapsed:2.1},
-  {name:'BLM Western OR Resource Mgmt',agency:'BLM',cat:'Land & Resource Mgmt',state:'OR',noi:'2023-07-28',latest:'DEIS (2025)',elapsed:2.6},
-  {name:'Powder River Basin Coal Leasing',agency:'BLM',cat:'Mining & Minerals',state:'WY',noi:'2019-11-22',latest:'On Hold',elapsed:6.3},
-  {name:'Enbridge Line 5 Tunnel',agency:'USACE',cat:'Energy (Fossil)',state:'MI',noi:'2020-11-20',latest:'DEIS (2024)',elapsed:5.3},
-  {name:'WAPA TransCanon Transmission',agency:'DOE',cat:'Energy (Fossil)',state:'CO',noi:'2021-08-20',latest:'DEIS (2024)',elapsed:4.6},
-  {name:'Cape Wind (Revised Proposal)',agency:'BOEM',cat:'Energy (Renewable)',state:'MA',noi:'2022-11-04',latest:'Scoping (2024)',elapsed:3.3},
-  {name:'Wheatridge Renewable III',agency:'BLM',cat:'Energy (Renewable)',state:'OR',noi:'2023-03-17',latest:'DEIS (2025)',elapsed:3.0},
-  {name:'Camp Lejeune Water Treatment',agency:'DOD',cat:'Defense & Military',state:'NC',noi:'2021-05-14',latest:'DEIS (2024)',elapsed:4.8},
-OLD DATA REMOVED - END */
-
 // ============================================================
 // CHART INSTANCES (stored for redraws)
 // ============================================================
@@ -725,10 +581,12 @@ function getFilteredCompleted() {
   const yTo = parseInt(document.getElementById('gfYearTo').value);
   const search = document.getElementById('gfSearch').value.toLowerCase();
   return completedRecords.filter(r => {
-    const rodYear = parseInt(r.rod.substring(0,4));
     if (agency && r.agency !== agency) return false;
     if (cat && r.cat !== cat) return false;
-    if (rodYear < yFrom || rodYear > yTo) return false;
+    if (r.rod) {
+      const rodYear = parseInt(r.rod.substring(0,4));
+      if (!isNaN(rodYear) && (rodYear < yFrom || rodYear > yTo)) return false;
+    }
     if (search && !r.name.toLowerCase().includes(search)) return false;
     return true;
   });
@@ -748,7 +606,7 @@ function getFilteredUnderway() {
 
 function isFilterActive() {
   return document.getElementById('gfAgency').value || document.getElementById('gfCategory').value || document.getElementById('gfSearch').value ||
-    document.getElementById('gfYearFrom').value !== '2010' || document.getElementById('gfYearTo').value !== '2025';
+    document.getElementById('gfYearFrom').value !== '2010' || document.getElementById('gfYearTo').value !== '2026';
 }
 
 function resetFilters() {
@@ -765,18 +623,22 @@ function resetFilters() {
 // ============================================================
 function computeStats(records) {
   if (!records.length) return { total:0, median:0, mean:0, pct2:0 };
-  const durs = records.map(r => r.dur).sort((a,b) => a - b);
   const total = records.length;
-  const mean = durs.reduce((s,v) => s+v, 0) / total;
-  const median = total % 2 === 0 ? (durs[total/2 - 1] + durs[total/2]) / 2 : durs[Math.floor(total/2)];
-  const pct2 = (durs.filter(d => d <= 2).length / total * 100);
+  // Filter out EPA-only records with no duration data (dur===0, no NOI)
+  const durs = records.filter(r => r.dur > 0).map(r => r.dur).sort((a,b) => a - b);
+  if (!durs.length) return { total, median:0, mean:0, pct2:0 };
+  const mean = durs.reduce((s,v) => s+v, 0) / durs.length;
+  const median = durs.length % 2 === 0 ? (durs[durs.length/2 - 1] + durs[durs.length/2]) / 2 : durs[Math.floor(durs.length/2)];
+  const pct2 = (durs.filter(d => d <= 2).length / durs.length * 100);
   return { total, median, mean, pct2 };
 }
 
 function groupByYear(records) {
   const byYear = {};
   records.forEach(r => {
+    if (!r.rod) return;
     const y = parseInt(r.rod.substring(0,4));
+    if (isNaN(y)) return;
     if (!byYear[y]) byYear[y] = [];
     byYear[y].push(r);
   });
@@ -820,20 +682,19 @@ function applyFilters() {
 
   const yearCounts = years.map(y => (byYear[y]||[]).length);
   const yearMedians = years.map(y => {
-    const recs = byYear[y]||[];
-    if (!recs.length) return 0;
-    const d = recs.map(r=>r.dur).sort((a,b)=>a-b);
+    const d = (byYear[y]||[]).filter(r=>r.dur>0).map(r=>r.dur).sort((a,b)=>a-b);
+    if (!d.length) return 0;
     return d.length%2===0 ? (d[d.length/2-1]+d[d.length/2])/2 : d[Math.floor(d.length/2)];
   });
   const yearMeans = years.map(y => {
-    const recs = byYear[y]||[];
-    if (!recs.length) return 0;
-    return recs.reduce((s,r)=>s+r.dur,0)/recs.length;
+    const d = (byYear[y]||[]).filter(r=>r.dur>0).map(r=>r.dur);
+    if (!d.length) return 0;
+    return d.reduce((s,v)=>s+v,0)/d.length;
   });
   const yearPct2 = years.map(y => {
-    const recs = byYear[y]||[];
-    if (!recs.length) return 0;
-    return recs.filter(r=>r.dur<=2).length/recs.length*100;
+    const d = (byYear[y]||[]).filter(r=>r.dur>0);
+    if (!d.length) return 0;
+    return d.filter(r=>r.dur<=2).length/d.length*100;
   });
 
   updateChart('chartCompletions', 'bar', {
@@ -841,29 +702,35 @@ function applyFilters() {
     datasets: [{ label:'Completions', data: yearCounts, backgroundColor: ORANGE, borderRadius: 4 }]
   }, { plugins:{legend:{display:false}}, scales: makeScaleOpts(null, 'Count') });
 
+  // Duration charts: only show years with duration data (exclude EPA-only years)
+  const durYears = years.filter(y => (byYear[y]||[]).some(r=>r.dur>0));
+  const durMedians = durYears.map(y => yearMedians[years.indexOf(y)]);
+  const durMeans = durYears.map(y => yearMeans[years.indexOf(y)]);
+  const durPct2 = durYears.map(y => yearPct2[years.indexOf(y)]);
+
   updateChart('chartMedianDuration', 'line', {
-    labels: years,
-    datasets: [{ label:'Median (yrs)', data: yearMedians, borderColor: BLUE, backgroundColor:'rgba(73,151,208,0.1)', fill:true, tension:0.3, pointRadius:4, pointBackgroundColor:BLUE }]
+    labels: durYears,
+    datasets: [{ label:'Median (yrs)', data: durMedians, borderColor: BLUE, backgroundColor:'rgba(73,151,208,0.1)', fill:true, tension:0.3, pointRadius:4, pointBackgroundColor:BLUE }]
   }, { plugins:{legend:{display:false}}, scales: makeScaleOpts(null, 'Years') });
 
   updateChart('chartMeanMedian', 'line', {
-    labels: years,
+    labels: durYears,
     datasets: [
-      { label:'Mean', data: yearMeans, borderColor: ORANGE, fill:false, tension:0.3, pointRadius:3 },
-      { label:'Median', data: yearMedians, borderColor: BLUE, fill:false, tension:0.3, pointRadius:3 }
+      { label:'Mean', data: durMeans, borderColor: ORANGE, fill:false, tension:0.3, pointRadius:3 },
+      { label:'Median', data: durMedians, borderColor: BLUE, fill:false, tension:0.3, pointRadius:3 }
     ]
   }, { scales: makeScaleOpts(null, 'Years') });
 
   updateChart('chartUnder2yr', 'bar', {
-    labels: years,
-    datasets: [{ label:'% ≤ 2 yrs', data: yearPct2, backgroundColor: BLUE, borderRadius: 4 }]
+    labels: durYears,
+    datasets: [{ label:'% ≤ 2 yrs', data: durPct2, backgroundColor: BLUE, borderRadius: 4 }]
   }, { plugins:{legend:{display:false}}, scales:{...makeScaleOpts(null,'%'), y:{...makeScaleOpts(null,'%').y, min:0, max:100}} });
 
   // -- Agency charts --
   const byAgency = groupByField(filtered, 'agency');
   const agencyEntries = Object.entries(byAgency).map(([a,recs]) => {
-    const d = recs.map(r=>r.dur).sort((a,b)=>a-b);
-    const med = d.length%2===0 ? (d[d.length/2-1]+d[d.length/2])/2 : d[Math.floor(d.length/2)];
+    const d = recs.filter(r=>r.dur>0).map(r=>r.dur).sort((a,b)=>a-b);
+    const med = d.length ? (d.length%2===0 ? (d[d.length/2-1]+d[d.length/2])/2 : d[Math.floor(d.length/2)]) : 0;
     return { agency: a, count: recs.length, median: med };
   }).sort((a,b) => b.count - a.count);
 
@@ -875,7 +742,7 @@ function applyFilters() {
     const restCount = rest.reduce((s,a) => s+a.count, 0);
     const restDurs = rest.flatMap(a => {
       const recs = byAgency[a.agency] || [];
-      return recs.map(r=>r.dur);
+      return recs.filter(r=>r.dur>0).map(r=>r.dur);
     }).sort((a,b)=>a-b);
     const restMed = restDurs.length%2===0 ? (restDurs[restDurs.length/2-1]+restDurs[restDurs.length/2])/2 : restDurs[Math.floor(restDurs.length/2)];
     topAgencies.push({ agency: 'Other ('+rest.length+')', count: restCount, median: restMed||0 });
@@ -895,8 +762,8 @@ function applyFilters() {
   // -- Category charts --
   const byCat = groupByField(filtered, 'cat');
   const catEntries = Object.entries(byCat).map(([c,recs]) => {
-    const d = recs.map(r=>r.dur).sort((a,b)=>a-b);
-    const med = d.length%2===0 ? (d[d.length/2-1]+d[d.length/2])/2 : d[Math.floor(d.length/2)];
+    const d = recs.filter(r=>r.dur>0).map(r=>r.dur).sort((a,b)=>a-b);
+    const med = d.length ? (d.length%2===0 ? (d[d.length/2-1]+d[d.length/2])/2 : d[Math.floor(d.length/2)]) : 0;
     return { cat: c, count: recs.length, median: med };
   }).sort((a,b) => b.count - a.count);
   const catColors = [ORANGE, BLUE, YELLOW, TIMBER, '#7a5af5', '#e85d75', '#3dd6b0', '#c97d2e', '#5ba3cf', '#d4a53a', '#8899aa'];
@@ -974,8 +841,8 @@ function renderCompletedTable(records) {
   tbody.innerHTML = records.map(r => `<tr>
     <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis" title="${r.name}">${r.name}</td>
     <td>${r.agency}</td><td>${r.cat}</td><td>${r.state}</td>
-    <td>${r.noi}</td><td>${r.rod}</td>
-    <td style="text-align:right"><span class="badge ${r.dur>6?'badge-long':'badge-complete'}">${r.dur.toFixed(1)}</span></td>
+    <td>${r.noi||'—'}</td><td>${r.rod||'—'}</td>
+    <td style="text-align:right"><span class="badge ${r.dur>6?'badge-long':'badge-complete'}">${r.dur>0?r.dur.toFixed(1):'—'}</span></td>
   </tr>`).join('');
   document.getElementById('rowCount').textContent = records.length;
 }
@@ -985,8 +852,8 @@ function renderUnderwayTable(records) {
   tbody.innerHTML = records.map(r => `<tr>
     <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis" title="${r.name}">${r.name}</td>
     <td>${r.agency}</td><td>${r.cat}</td><td>${r.state}</td>
-    <td>${r.noi}</td><td><span class="badge ${r.elapsed>10?'badge-long':'badge-underway'}">${r.latest}</span></td>
-    <td style="text-align:right">${r.elapsed.toFixed(1)}</td>
+    <td>${r.noi||'—'}</td><td><span class="badge ${r.elapsed>10?'badge-long':'badge-underway'}">${r.latest||'—'}</span></td>
+    <td style="text-align:right">${r.elapsed>0?r.elapsed.toFixed(1):'—'}</td>
   </tr>`).join('');
 }
 
@@ -1018,11 +885,11 @@ function initFilters() {
   cats.forEach(c => { const o = document.createElement('option'); o.value=c; o.textContent=c; catSel.appendChild(o); });
   const yFrom = document.getElementById('gfYearFrom');
   const yTo = document.getElementById('gfYearTo');
-  for (let y=2010; y<=2025; y++) {
+  for (let y=2010; y<=2026; y++) {
     yFrom.appendChild(Object.assign(document.createElement('option'),{value:y,textContent:y}));
     yTo.appendChild(Object.assign(document.createElement('option'),{value:y,textContent:y}));
   }
-  yFrom.value = '2010'; yTo.value = '2025';
+  yFrom.value = '2010'; yTo.value = '2026';
 
   // Wire up filter change events
   ['gfAgency','gfCategory','gfYearFrom','gfYearTo'].forEach(id => {
