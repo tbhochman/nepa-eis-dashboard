@@ -840,8 +840,8 @@ function mergeDeep(target, source) {
 function renderCompletedTable(records) {
   const tbody = document.getElementById('completedBody');
   tbody.innerHTML = records.map(r => `<tr>
-    <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis" title="${r.name}">${r.name}</td>
-    <td>${r.agency}</td><td>${r.cat}</td><td>${r.state}</td>
+    <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis" title="${r.name}">${r.name}</td>
+    <td>${r.agency}</td><td style="white-space:normal;max-width:100px">${r.cat}</td><td style="white-space:normal;max-width:60px">${r.state}</td>
     <td>${r.noi||'—'}</td><td>${r.feis||'—'}</td>
     <td style="text-align:right"><span class="badge ${r.durFeis>6?'badge-long':'badge-complete'}">${r.durFeis>0?r.durFeis.toFixed(1):'—'}</span></td>
     <td>${r.rod||'—'}</td>
