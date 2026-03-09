@@ -376,7 +376,7 @@
       <div class="header-meta">Last Updated: March 9, 2026</div>
     </div>
     <h1>NEPA EIS Timeline Tracker</h1>
-    <div class="subtitle">Environmental Impact Statement Completion Timelines: Notice of Intent (NOI) to Final EIS (FEIS)</div>
+    <div class="subtitle">Environmental Impact Statement Completion Timelines: Notice of Intent (NOI) to Record of Decision (ROD)</div>
     <div class="header-tags">
       <span>Data: 2010 – March 2026</span>
       <span>Source: CEQ EIS Timeline Reports &amp; EPA EIS Database</span>
@@ -417,8 +417,8 @@
   <!-- KPIs -->
   <div class="kpi-row">
     <div class="kpi"><div class="value" id="kpiTotal">—</div><div class="label">EISs Completed</div></div>
-    <div class="kpi blue"><div class="value" id="kpiMedian">—</div><div class="label">Median NOI-to-FEIS</div></div>
-    <div class="kpi yellow"><div class="value" id="kpiMean">—</div><div class="label">Mean NOI-to-FEIS</div></div>
+    <div class="kpi blue"><div class="value" id="kpiMedian">—</div><div class="label">Median NOI-to-ROD</div></div>
+    <div class="kpi yellow"><div class="value" id="kpiMean">—</div><div class="label">Mean NOI-to-ROD</div></div>
     <div class="kpi"><div class="value" id="kpiPct2">—</div><div class="label">Completed ≤ 2 Years</div></div>
     <div class="kpi timber"><div class="value" id="kpiUnderway">—</div><div class="label">Currently Underway</div></div>
   </div>
@@ -431,13 +431,13 @@
       <div class="chart-container"><canvas id="chartCompletions"></canvas></div>
     </div>
     <div class="card">
-      <h2>Median NOI-to-FEIS Duration <small>(years)</small></h2>
+      <h2>Median NOI-to-ROD Duration <small>(years)</small></h2>
       <div class="chart-container"><canvas id="chartMedianDuration"></canvas></div>
     </div>
   </div>
   <div class="grid-2">
     <div class="card">
-      <h2>Mean vs Median NOI-to-FEIS <small>(years)</small></h2>
+      <h2>Mean vs Median NOI-to-ROD <small>(years)</small></h2>
       <div class="chart-container"><canvas id="chartMeanMedian"></canvas></div>
     </div>
     <div class="card">
@@ -483,9 +483,8 @@
           <th onclick="sortTable('completedTable',2)">Category</th>
           <th onclick="sortTable('completedTable',3)">State</th>
           <th onclick="sortTable('completedTable',4)">NOI</th>
-          <th onclick="sortTable('completedTable',5)">FEIS</th>
-          <th onclick="sortTable('completedTable',6)">NOI-FEIS (yrs)</th>
-          <th onclick="sortTable('completedTable',7)">ROD</th>
+          <th onclick="sortTable('completedTable',5)">ROD</th>
+          <th onclick="sortTable('completedTable',6)">NOI-ROD (yrs)</th>
         </tr></thead>
         <tbody id="completedBody"></tbody>
       </table>
@@ -544,7 +543,7 @@
     <strong>Data Sources &amp; Methodology:</strong><br>
     Primary data from <a href="https://ceq.doe.gov/nepa-practice/eis-timelines.html" target="_blank">CEQ EIS Timeline Reports (2025)</a> covering 1,903 EISs with FEIS published 2010–2024.<br>
     Supplemented with records from <a href="https://cdxapps.epa.gov/cdx-enepa-II/public/action/eis/search" target="_blank">EPA EIS Database</a> for 2025–2026 filings.<br>
-    Timeline = years from NOI publication in Federal Register to FEIS publication, consistent with CEQ methodology. ROD dates shown where available. EPA-supplemented records may show "—" for NOI date and duration where data is unavailable.<br>
+    Timeline = years from NOI publication in Federal Register to Record of Decision (ROD). Records without ROD are included in completion counts but excluded from duration calculations. EPA-supplemented records may show "—" for NOI date and duration where data is unavailable.<br>
     Project categories assigned based on lead agency mission and project description.
   </div>
 </div>
@@ -625,8 +624,8 @@ function resetFilters() {
 function computeStats(records) {
   if (!records.length) return { total:0, median:0, mean:0, pct2:0 };
   const total = records.length;
-  // Use NOI→FEIS duration (matching CEQ methodology)
-  const durs = records.filter(r => r.durFeis > 0).map(r => r.durFeis).sort((a,b) => a - b);
+  // Use NOI→ROD duration; records without ROD (dur===0) excluded
+  const durs = records.filter(r => r.dur > 0).map(r => r.dur).sort((a,b) => a - b);
   if (!durs.length) return { total, median:0, mean:0, pct2:0 };
   const mean = durs.reduce((s,v) => s+v, 0) / durs.length;
   const median = durs.length % 2 === 0 ? (durs[durs.length/2 - 1] + durs[durs.length/2]) / 2 : durs[Math.floor(durs.length/2)];
@@ -683,19 +682,19 @@ function applyFilters() {
 
   const yearCounts = years.map(y => (byYear[y]||[]).length);
   const yearMedians = years.map(y => {
-    const d = (byYear[y]||[]).filter(r=>r.durFeis>0).map(r=>r.durFeis).sort((a,b)=>a-b);
+    const d = (byYear[y]||[]).filter(r=>r.dur>0).map(r=>r.dur).sort((a,b)=>a-b);
     if (!d.length) return 0;
     return d.length%2===0 ? (d[d.length/2-1]+d[d.length/2])/2 : d[Math.floor(d.length/2)];
   });
   const yearMeans = years.map(y => {
-    const d = (byYear[y]||[]).filter(r=>r.durFeis>0).map(r=>r.durFeis);
+    const d = (byYear[y]||[]).filter(r=>r.dur>0).map(r=>r.dur);
     if (!d.length) return 0;
     return d.reduce((s,v)=>s+v,0)/d.length;
   });
   const yearPct2 = years.map(y => {
-    const d = (byYear[y]||[]).filter(r=>r.durFeis>0);
+    const d = (byYear[y]||[]).filter(r=>r.dur>0);
     if (!d.length) return 0;
-    return d.filter(r=>r.durFeis<=2).length/d.length*100;
+    return d.filter(r=>r.dur<=2).length/d.length*100;
   });
 
   updateChart('chartCompletions', 'bar', {
@@ -704,7 +703,7 @@ function applyFilters() {
   }, { plugins:{legend:{display:false}}, scales: makeScaleOpts(null, 'Count') });
 
   // Duration charts: only show years with duration data (exclude EPA-only years)
-  const durYears = years.filter(y => (byYear[y]||[]).some(r=>r.durFeis>0));
+  const durYears = years.filter(y => (byYear[y]||[]).some(r=>r.dur>0));
   const durMedians = durYears.map(y => yearMedians[years.indexOf(y)]);
   const durMeans = durYears.map(y => yearMeans[years.indexOf(y)]);
   const durPct2 = durYears.map(y => yearPct2[years.indexOf(y)]);
@@ -730,7 +729,7 @@ function applyFilters() {
   // -- Agency charts --
   const byAgency = groupByField(filtered, 'agency');
   const agencyEntries = Object.entries(byAgency).map(([a,recs]) => {
-    const d = recs.filter(r=>r.durFeis>0).map(r=>r.durFeis).sort((a,b)=>a-b);
+    const d = recs.filter(r=>r.dur>0).map(r=>r.dur).sort((a,b)=>a-b);
     const med = d.length ? (d.length%2===0 ? (d[d.length/2-1]+d[d.length/2])/2 : d[Math.floor(d.length/2)]) : 0;
     return { agency: a, count: recs.length, median: med };
   }).sort((a,b) => b.count - a.count);
@@ -743,7 +742,7 @@ function applyFilters() {
     const restCount = rest.reduce((s,a) => s+a.count, 0);
     const restDurs = rest.flatMap(a => {
       const recs = byAgency[a.agency] || [];
-      return recs.filter(r=>r.durFeis>0).map(r=>r.durFeis);
+      return recs.filter(r=>r.dur>0).map(r=>r.dur);
     }).sort((a,b)=>a-b);
     const restMed = restDurs.length%2===0 ? (restDurs[restDurs.length/2-1]+restDurs[restDurs.length/2])/2 : restDurs[Math.floor(restDurs.length/2)];
     topAgencies.push({ agency: 'Other ('+rest.length+')', count: restCount, median: restMed||0 });
@@ -763,7 +762,7 @@ function applyFilters() {
   // -- Category charts --
   const byCat = groupByField(filtered, 'cat');
   const catEntries = Object.entries(byCat).map(([c,recs]) => {
-    const d = recs.filter(r=>r.durFeis>0).map(r=>r.durFeis).sort((a,b)=>a-b);
+    const d = recs.filter(r=>r.dur>0).map(r=>r.dur).sort((a,b)=>a-b);
     const med = d.length ? (d.length%2===0 ? (d[d.length/2-1]+d[d.length/2])/2 : d[Math.floor(d.length/2)]) : 0;
     return { cat: c, count: recs.length, median: med };
   }).sort((a,b) => b.count - a.count);
@@ -840,11 +839,10 @@ function mergeDeep(target, source) {
 function renderCompletedTable(records) {
   const tbody = document.getElementById('completedBody');
   tbody.innerHTML = records.map(r => `<tr>
-    <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis" title="${r.name}">${r.name}</td>
-    <td>${r.agency}</td><td style="white-space:normal;max-width:100px">${r.cat}</td><td style="white-space:normal;max-width:60px">${r.state}</td>
-    <td>${r.noi||'—'}</td><td>${r.feis||'—'}</td>
-    <td style="text-align:right"><span class="badge ${r.durFeis>6?'badge-long':'badge-complete'}">${r.durFeis>0?r.durFeis.toFixed(1):'—'}</span></td>
-    <td>${r.rod||'—'}</td>
+    <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis" title="${r.name}">${r.name}</td>
+    <td style="white-space:nowrap;max-width:50px;overflow:hidden;text-overflow:ellipsis">${r.agency}</td><td style="white-space:normal;max-width:100px">${r.cat}</td><td style="white-space:normal;max-width:60px">${r.state}</td>
+    <td>${r.noi||'—'}</td><td>${r.rod||'—'}</td>
+    <td style="text-align:right"><span class="badge ${r.dur>6?'badge-long':'badge-complete'}">${r.dur>0?r.dur.toFixed(1):'—'}</span></td>
   </tr>`).join('');
   document.getElementById('rowCount').textContent = records.length;
 }
