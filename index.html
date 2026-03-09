@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEPA EIS Timeline Tracker — Foundation for American Innovation</title>
+<title>NEPA EIS Dashboard — Foundation for American Innovation</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4"></script>
 <script src="data.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -253,7 +253,41 @@
   .badge-complete { background: rgba(73,151,208,0.15); color: var(--blue); }
   .badge-underway { background: rgba(255,163,0,0.15); color: var(--yellow); }
   .badge-long { background: rgba(255,79,0,0.15); color: var(--orange); }
-  .badge-challenged { background: rgba(255,163,0,0.12); color: var(--yellow); font-size: 0.6rem; cursor: pointer; }
+  .badge-challenged { background: rgba(255,163,0,0.12); color: var(--yellow); font-size: 0.6rem; cursor: pointer; text-decoration: none; }
+
+  /* Navigation Tabs */
+  .nav-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: -3px;
+    position: relative;
+    z-index: 1;
+  }
+  .nav-tab {
+    font-family: 'IBM Plex Sans Condensed', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.6rem 1.5rem;
+    color: var(--muted);
+    text-decoration: none;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    transition: color 0.2s, background 0.2s;
+  }
+  .nav-tab:hover {
+    color: var(--white);
+    background: rgba(255,79,0,0.08);
+  }
+  .nav-tab.active {
+    color: var(--orange);
+    background: var(--cod);
+    border-color: var(--orange);
+    border-bottom: 3px solid var(--cod);
+    margin-bottom: -3px;
+  }
 
   /* Policy Timeline */
   .policy-timeline { position: relative; padding-left: 2rem; }
@@ -376,8 +410,12 @@
       </div>
       <div class="header-meta">Last Updated: March 9, 2026</div>
     </div>
-    <h1>NEPA EIS Timeline Tracker</h1>
-    <div class="subtitle">Environmental Impact Statement Completion Timelines: Notice of Intent (NOI) to Record of Decision (ROD)</div>
+    <h1>NEPA EIS Dashboard</h1>
+    <div class="subtitle">Environmental Impact Statement Timelines & Litigation Tracking</div>
+    <nav class="nav-tabs">
+      <a class="nav-tab active" href="index.html">EIS Timelines</a>
+      <a class="nav-tab" href="litigation.html">Litigation</a>
+    </nav>
   </div>
 </div>
 
@@ -527,94 +565,6 @@
         </tr></thead>
         <tbody id="underwayBody"></tbody>
       </table>
-    </div>
-  </div>
-
-  <!-- Litigation Section -->
-  <div id="litSection" class="section-title">NEPA Litigation</div>
-
-  <!-- Litigation KPIs -->
-  <div class="kpi-row">
-    <div class="kpi"><div class="value" id="litTotal">—</div><div class="label">Total Cases</div></div>
-    <div class="kpi blue"><div class="value" id="litAgencyWin">—</div><div class="label">Agency Win Rate</div></div>
-    <div class="kpi yellow"><div class="value" id="litMedianDays">—</div><div class="label">Median Duration</div></div>
-  </div>
-
-  <!-- Litigation Charts -->
-  <div class="grid-2">
-    <div class="card">
-      <h2>Litigation Cases by Year <small>(filed)</small></h2>
-      <div class="chart-container"><canvas id="chartLitByYear"></canvas></div>
-    </div>
-    <div class="card">
-      <h2>Agency Win Rate by Year</h2>
-      <div class="chart-container"><canvas id="chartLitWinRate"></canvas></div>
-    </div>
-  </div>
-  <div class="grid-2">
-    <div class="card">
-      <h2>Most Litigated Agencies</h2>
-      <div class="chart-container tall"><canvas id="chartLitAgency"></canvas></div>
-    </div>
-    <div class="card">
-      <h2>Cases by Project Category</h2>
-      <div class="chart-container tall"><canvas id="chartLitCategory"></canvas></div>
-    </div>
-  </div>
-
-  <!-- Litigation Filters + Table -->
-  <div class="global-filters" style="margin-bottom:0.5rem;padding:0.75rem 1.25rem">
-    <div class="filter-group">
-      <label>Agency</label>
-      <select id="litAgency"><option value="">All Agencies</option></select>
-    </div>
-    <div class="filter-group">
-      <label>Circuit</label>
-      <select id="litCircuit"><option value="">All Circuits</option></select>
-    </div>
-    <div class="filter-group">
-      <label>Prevailing Party</label>
-      <select id="litPrev">
-        <option value="">All</option>
-        <option value="Agency">Agency</option>
-        <option value="Challenger">Challenger</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <label>Filed Year From</label>
-      <select id="litYearFrom"></select>
-    </div>
-    <div class="filter-group">
-      <label>To</label>
-      <select id="litYearTo"></select>
-    </div>
-    <div class="filter-group">
-      <label>Search</label>
-      <input id="litSearch" type="text" placeholder="Case or project name..." style="width:180px">
-    </div>
-    <button class="filter-reset" onclick="resetLitFilters()">Reset</button>
-  </div>
-  <div class="card">
-    <div class="table-wrap">
-      <table id="litTable">
-        <thead><tr>
-          <th onclick="sortTable('litTable',0)">Case</th>
-          <th onclick="sortTable('litTable',1)">Plaintiff(s)</th>
-          <th onclick="sortTable('litTable',2)">Agency</th>
-          <th onclick="sortTable('litTable',3)">Court</th>
-          <th onclick="sortTable('litTable',4)">Project</th>
-          <th onclick="sortTable('litTable',5)">Filed</th>
-          <th onclick="sortTable('litTable',6)">Duration</th>
-          <th onclick="sortTable('litTable',7)">Outcome</th>
-        </tr></thead>
-        <tbody id="litBody"></tbody>
-      </table>
-    </div>
-    <div style="margin-top:0.75rem;font-family:'IBM Plex Sans',sans-serif;font-size:0.75rem;color:var(--muted)">
-      Showing <span id="litRowCount">0</span> litigation records.
-      Source: <a href="https://navigatingnepa.com/" target="_blank" style="color:var(--orange)">Navigating NEPA / Breakthrough Institute</a> (2012–2022) &amp;
-      <a href="https://www.courtlistener.com/" target="_blank" style="color:var(--orange)">CourtListener</a> (2022–2026).
-      Note: BTI data (2012–2022) is comprehensively hand-curated; CourtListener data (2022+) is keyword-matched from published opinions and less complete. Case volumes before 2012 and after 2022 reflect data availability, not actual litigation trends. Duration data available for BTI cases only.
     </div>
   </div>
 
@@ -987,7 +937,7 @@ function renderCompletedTable(records) {
   const tbody = document.getElementById('completedBody');
   tbody.innerHTML = records.map(r => {
     const isChallenged = challengedEIS.has(r.name);
-    const challengeBadge = isChallenged ? '<span class="badge badge-challenged" title="This EIS was challenged in court — click to view litigation section" onclick="document.getElementById(\'litSection\').scrollIntoView({behavior:\'smooth\'})" style="flex-shrink:0">⚖ Challenged</span>' : '';
+    const challengeBadge = isChallenged ? '<a href="litigation.html" class="badge badge-challenged" title="This EIS was challenged in court — click to view litigation data" style="flex-shrink:0">⚖ Challenged</a>' : '';
     const nameCell = isChallenged
       ? `<td style="max-width:300px" title="${r.name}"><div style="display:flex;align-items:center;gap:6px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name}</span>${challengeBadge}</div></td>`
       : `<td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.name}">${r.name}</td>`;
@@ -1062,194 +1012,6 @@ function initFilters() {
   });
   document.getElementById('gfSearch').addEventListener('input', applyFilters);
 }
-
-// ============================================================
-// LITIGATION DATA
-// ============================================================
-const litRecords = (typeof DATA_LITIGATION !== 'undefined' ? DATA_LITIGATION : []).map(r => ({
-  title: r.t||'', plaintiff: r.pl||'', plaintiffType: r.pt||'',
-  agency: r.ag||'', court: r.ct||'', circuit: r.cir||'', state: r.st||'',
-  project: r.proj||'', cat: r.cat||'', docType: r.doc||'',
-  filed: r.filed||'', ruled: r.ruled||'', days: r.days,
-  prev: r.prev||'', disp: r.disp||'', inj: r.inj||false, vac: r.vac||false,
-  src: r.src||''
-}));
-
-function getFilteredLit() {
-  const ag = document.getElementById('litAgency').value;
-  const cir = document.getElementById('litCircuit').value;
-  const prev = document.getElementById('litPrev').value;
-  const yFrom = parseInt(document.getElementById('litYearFrom').value);
-  const yTo = parseInt(document.getElementById('litYearTo').value);
-  const search = document.getElementById('litSearch').value.toLowerCase();
-  return litRecords.filter(r => {
-    // Enforce 2010 minimum regardless of filter setting
-    if (r.filed) {
-      const y = parseInt(r.filed.substring(0,4));
-      if (!isNaN(y) && (y < Math.max(yFrom, 2010) || y > yTo)) return false;
-    } else { return false; }
-    if (ag && r.agency !== ag) return false;
-    if (cir && r.circuit !== cir) return false;
-    if (prev && r.prev !== prev) return false;
-    if (search && !r.title.toLowerCase().includes(search) && !r.project.toLowerCase().includes(search)) return false;
-    return true;
-  });
-}
-
-function resetLitFilters() {
-  document.getElementById('litAgency').value = '';
-  document.getElementById('litCircuit').value = '';
-  document.getElementById('litPrev').value = '';
-  const lf = document.getElementById('litYearFrom');
-  const lt = document.getElementById('litYearTo');
-  lf.value = lf.options[0].value;
-  lt.value = lt.options[lt.options.length-1].value;
-  document.getElementById('litSearch').value = '';
-  applyLitFilters();
-}
-
-function computeLitStats(recs) {
-  const total = recs.length;
-  const withOutcome = recs.filter(r => r.prev === 'Agency' || r.prev === 'Challenger');
-  const agencyWins = withOutcome.filter(r => r.prev === 'Agency').length;
-  const winRate = withOutcome.length > 0 ? (agencyWins / withOutcome.length * 100) : 0;
-  const daysArr = recs.filter(r => r.days > 0).map(r => r.days).sort((a,b) => a-b);
-  const median = daysArr.length > 0
-    ? (daysArr.length % 2 === 0 ? (daysArr[daysArr.length/2-1]+daysArr[daysArr.length/2])/2 : daysArr[Math.floor(daysArr.length/2)])
-    : 0;
-  const injCount = recs.filter(r => r.inj).length;
-  const vacCount = recs.filter(r => r.vac).length;
-  return { total, winRate, medianDays: median, injCount, vacCount };
-}
-
-function applyLitFilters() {
-  const filtered = getFilteredLit();
-  const stats = computeLitStats(filtered);
-
-  // KPIs
-  document.getElementById('litTotal').textContent = stats.total.toLocaleString();
-  document.getElementById('litAgencyWin').textContent = stats.winRate > 0 ? stats.winRate.toFixed(0) + '%' : '—';
-  document.getElementById('litMedianDays').textContent = stats.medianDays > 0 ? (stats.medianDays / 365.25).toFixed(1) + ' yrs' : '—';
-
-  // Cases by year
-  const byYear = {};
-  filtered.forEach(r => {
-    if (!r.filed) return;
-    const y = parseInt(r.filed.substring(0,4));
-    if (isNaN(y)) return;
-    if (!byYear[y]) byYear[y] = [];
-    byYear[y].push(r);
-  });
-  const litYears = Object.keys(byYear).map(Number).sort();
-  const litCounts = litYears.map(y => byYear[y].length);
-
-  updateChart('chartLitByYear', 'bar', {
-    labels: litYears,
-    datasets: [{ label:'Cases Filed', data: litCounts, backgroundColor: ORANGE, borderRadius: 4 }]
-  }, { plugins:{legend:{display:false}}, scales: makeScaleOpts(null, 'Count') });
-
-  // Win rate by year
-  const winRates = litYears.map(y => {
-    const yRecs = byYear[y];
-    const wo = yRecs.filter(r => r.prev === 'Agency' || r.prev === 'Challenger');
-    if (wo.length < 3) return null;
-    return (wo.filter(r => r.prev === 'Agency').length / wo.length * 100);
-  });
-
-  updateChart('chartLitWinRate', 'line', {
-    labels: litYears,
-    datasets: [{ label:'Agency Win Rate %', data: winRates, borderColor: BLUE, fill:false, tension:0.3, pointRadius:3, spanGaps: true }]
-  }, { scales: { ...makeScaleOpts(null, '%'), y: { ...makeScaleOpts(null, '%').y, min:0, max:100 } } });
-
-  // By agency
-  const byAgency = {};
-  filtered.forEach(r => {
-    if (!r.agency) return;
-    byAgency[r.agency] = (byAgency[r.agency]||0) + 1;
-  });
-  const agencyEntries = Object.entries(byAgency).sort((a,b) => b[1]-a[1]);
-  const topAgencies = agencyEntries.slice(0, 15);
-  if (agencyEntries.length > 15) {
-    const otherCount = agencyEntries.slice(15).reduce((s,e) => s+e[1], 0);
-    topAgencies.push([`Other (${agencyEntries.length-15})`, otherCount]);
-  }
-
-  updateChart('chartLitAgency', 'bar', {
-    labels: topAgencies.map(e => e[0]),
-    datasets: [{ label:'Cases', data: topAgencies.map(e => e[1]), backgroundColor: ORANGE, borderRadius: 4 }]
-  }, { indexAxis:'y', plugins:{legend:{display:false}}, scales: makeScaleOpts('Count', null) });
-
-  // By category
-  const byCat = {};
-  filtered.forEach(r => {
-    const c = r.cat || 'Uncategorized';
-    byCat[c] = (byCat[c]||0) + 1;
-  });
-  const catEntries = Object.entries(byCat).sort((a,b) => b[1]-a[1]);
-
-  updateChart('chartLitCategory', 'bar', {
-    labels: catEntries.map(e => e[0]),
-    datasets: [{ label:'Cases', data: catEntries.map(e => e[1]), backgroundColor: BLUE, borderRadius: 4 }]
-  }, { indexAxis:'y', plugins:{legend:{display:false}}, scales: makeScaleOpts('Count', null) });
-
-  // Table
-  renderLitTable(filtered);
-}
-
-function renderLitTable(records) {
-  const tbody = document.getElementById('litBody');
-  tbody.innerHTML = records.map(r => {
-    const durationStr = r.days > 0 ? (r.days / 365.25).toFixed(1) + ' yrs' : '—';
-    const outcomeStr = r.prev ? `${r.prev}${r.disp ? ' — ' + r.disp : ''}` : (r.disp || '—');
-    const badgeClass = r.prev === 'Agency' ? 'badge-complete' : r.prev === 'Challenger' ? 'badge-long' : 'badge-underway';
-    return `<tr>
-      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis" title="${r.title}">${r.title}</td>
-      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis" title="${r.plaintiff}">${r.plaintiff || '—'}</td>
-      <td style="white-space:nowrap">${r.agency || '—'}</td>
-      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis" title="${r.court}">${r.court || '—'}</td>
-      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis" title="${r.project}">${r.project || '—'}</td>
-      <td style="white-space:nowrap">${r.filed || '—'}</td>
-      <td style="text-align:right">${durationStr}</td>
-      <td><span class="badge ${badgeClass}">${r.prev || '—'}</span></td>
-    </tr>`;
-  }).join('');
-  document.getElementById('litRowCount').textContent = records.length;
-}
-
-function initLitFilters() {
-  // Agencies
-  const litAgencies = [...new Set(litRecords.map(r => r.agency).filter(Boolean))].sort();
-  const agSel = document.getElementById('litAgency');
-  litAgencies.forEach(a => agSel.appendChild(Object.assign(document.createElement('option'),{value:a,textContent:a})));
-
-  // Circuits
-  const circuits = [...new Set(litRecords.map(r => r.circuit).filter(Boolean))].sort((a,b) => {
-    const na = parseInt(a), nb = parseInt(b);
-    if (!isNaN(na) && !isNaN(nb)) return na - nb;
-    return a.localeCompare(b);
-  });
-  const cirSel = document.getElementById('litCircuit');
-  circuits.forEach(c => cirSel.appendChild(Object.assign(document.createElement('option'),{value:c,textContent:c})));
-
-  // Year range
-  const litMin = 2010, litMax = 2026;
-  const yfSel = document.getElementById('litYearFrom');
-  const ytSel = document.getElementById('litYearTo');
-  for (let y = litMin; y <= litMax; y++) {
-    yfSel.appendChild(Object.assign(document.createElement('option'),{value:y,textContent:y}));
-    ytSel.appendChild(Object.assign(document.createElement('option'),{value:y,textContent:y}));
-  }
-  yfSel.value = String(litMin); ytSel.value = String(litMax);
-
-  // Wire events
-  ['litAgency','litCircuit','litPrev','litYearFrom','litYearTo'].forEach(id => {
-    document.getElementById(id).addEventListener('change', applyLitFilters);
-  });
-  document.getElementById('litSearch').addEventListener('input', applyLitFilters);
-}
-
-initLitFilters();
-applyLitFilters();
 
 initFilters();
 applyFilters();

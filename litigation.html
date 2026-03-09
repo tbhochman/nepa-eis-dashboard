@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEPA Litigation Tracker — Foundation for American Innovation</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4"></script>
+<script src="data.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@400;700&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --orange: #FF4F00;
+    --cod: #121212;
+    --white: #FFFFFF;
+    --yellow: #FFA300;
+    --blue: #4997D0;
+    --timber: #D9D9D6;
+    --card: #1a1a1a;
+    --border: #2a2a2a;
+    --muted: #999;
+    --text: #e8e8e8;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    background: var(--cod);
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  /* Header */
+  .header {
+    background: var(--cod);
+    padding: 2rem 2rem 0;
+    border-bottom: 3px solid var(--orange);
+  }
+  .header-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  .logo svg { height: 32px; width: auto; }
+  .header-meta {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .header h1 {
+    font-family: 'IBM Plex Serif', serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 0.25rem;
+  }
+  .header .subtitle {
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 1.25rem;
+  }
+
+  /* Navigation Tabs */
+  .nav-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: -3px;
+    position: relative;
+    z-index: 1;
+  }
+  .nav-tab {
+    font-family: 'IBM Plex Sans Condensed', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.6rem 1.5rem;
+    color: var(--muted);
+    text-decoration: none;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    transition: color 0.2s, background 0.2s;
+  }
+  .nav-tab:hover {
+    color: var(--white);
+    background: rgba(255,79,0,0.08);
+  }
+  .nav-tab.active {
+    color: var(--orange);
+    background: var(--cod);
+    border-color: var(--orange);
+    border-bottom: 3px solid var(--cod);
+    margin-bottom: -3px;
+  }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 1.5rem; }
+
+  /* Beta Banner */
+  .beta-banner {
+    background: rgba(255,163,0,0.1);
+    border: 1px solid rgba(255,163,0,0.35);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .beta-banner .beta-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    line-height: 1.4;
+  }
+  .beta-banner .beta-tag {
+    font-family: 'IBM Plex Sans Condensed', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: var(--yellow);
+    color: var(--cod);
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 0.2rem;
+  }
+  .beta-banner .beta-text {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8rem;
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .beta-banner .beta-text strong {
+    color: var(--yellow);
+  }
+
+  /* Filters */
+  .global-filters {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .global-filters label {
+    font-family: 'IBM Plex Sans Condensed', sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--orange);
+    font-weight: 700;
+  }
+  .global-filters select, .global-filters input {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--cod);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.4rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+  }
+  .global-filters select:focus, .global-filters input:focus {
+    outline: none;
+    border-color: var(--orange);
+  }
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .filter-reset {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--orange);
+    color: var(--cod);
+    border: none;
+    padding: 0.4rem 1rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-left: auto;
+  }
+  .filter-reset:hover { opacity: 0.85; }
+
+  /* KPI Row */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .kpi {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    text-align: center;
+    border-top: 3px solid var(--orange);
+  }
+  .kpi .value {
+    font-family: 'IBM Plex Serif', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--orange);
+  }
+  .kpi .label {
+    font-family: 'IBM Plex Sans Condensed', sans-serif;
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .kpi.blue .value { color: var(--blue); }
+  .kpi.yellow .value { color: var(--yellow); }
+  .kpi.timber .value { color: var(--timber); }
+
+  /* Section Titles */
+  .section-title {
+    font-family: 'IBM Plex Serif', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--white);
+    margin: 2rem 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--orange);
+  }
+
+  /* Grids */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+  .card h2 {
+    font-family: 'IBM Plex Serif', serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--white);
+  }
+  .card h2 small {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 400;
+    color: var(--muted);
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+  }
+  .chart-container { position: relative; width: 100%; height: 360px; }
+  .chart-container.tall { height: 420px; }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; max-height: 500px; overflow-y: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8rem;
+  }
+  thead { position: sticky; top: 0; z-index: 2; }
+  th {
+    background: #1f1f1f;
+    color: var(--orange);
+    font-family: 'IBM Plex Sans Condensed', sans-serif;
+    text-transform: uppercase;
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    padding: 0.65rem 0.6rem;
+    text-align: left;
+    border-bottom: 2px solid var(--orange);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  th:hover { color: var(--white); }
+  td {
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tr:hover td { background: rgba(255,79,0,0.04); }
+
+  .badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    font-family: 'IBM Plex Sans Condensed', sans-serif;
+  }
+  .badge-complete { background: rgba(73,151,208,0.15); color: var(--blue); }
+  .badge-underway { background: rgba(255,163,0,0.15); color: var(--yellow); }
+  .badge-long { background: rgba(255,79,0,0.15); color: var(--orange); }
+
+  .source-note {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 2rem;
+    padding: 1rem;
+    border-top: 2px solid var(--orange);
+    line-height: 1.8;
+  }
+  .source-note a { color: var(--orange); text-decoration: none; }
+  .source-note a:hover { text-decoration: underline; }
+
+  /* Chevron page furniture */
+  .page-chevron {
+    position: fixed;
+    bottom: 1rem;
+    left: 1rem;
+    opacity: 0.08;
+    width: 28px;
+    z-index: 0;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- Chevron page furniture (bottom-left) -->
+<svg class="page-chevron" viewBox="0 0 900 1081" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M459.238 0.82L899.028 540.82L459.238 1080.82V0.82Z" fill="#FFFFFF"/>
+<path d="M0 0.82L439.78 540.82L0 1080.82V0.82Z" fill="#FFFFFF"/>
+</svg>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-top">
+      <div class="logo">
+        <svg viewBox="0 0 1920 425" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M180.199 0L352.759 211.88L180.199 423.76V0Z" fill="#FFFFFF"/>
+          <path d="M0 0L172.56 211.88L0 423.76V0Z" fill="#FFFFFF"/>
+          <path d="M449.131 195.548V104.618H477.581V81.6081H449.131V28.7581H481.411V3.82812H417.121V195.548H449.131Z" fill="#FFFFFF"/>
+          <path d="M529.68 0C503.96 0 492.75 14.24 492.75 33.69V163.78C492.75 187.61 505.61 199.66 529.68 199.66C553.75 199.66 567.43 187.61 567.43 165.42V33.69C567.43 15.89 554.3 0 529.68 0ZM529.95 29.58C534.05 29.58 536.24 31.5 536.24 36.43V163.79C536.24 169.54 534.87 172.28 530.22 172.28C525.84 172.28 524.2 169.82 524.2 163.79L523.93 36.43C523.93 31.77 526.12 29.58 529.95 29.58Z" fill="#FFFFFF"/>
+          <path d="M622.07 3.82812V163.778C622.07 169.528 620.7 172.268 616.05 172.268C611.67 172.268 610.03 169.808 610.03 163.778V3.82812H578.57V163.778C578.57 187.608 591.43 199.658 615.5 199.658C639.57 199.658 653.25 187.608 653.25 165.418V3.82812H622.06H622.07Z" fill="#FFFFFF"/>
+          <path d="M664.561 3.82812V195.548H692.461V82.9781L718.451 195.548H750.731V3.82812H723.371V103.248L702.031 3.82812H664.551H664.561Z" fill="#FFFFFF"/>
+          <path d="M761.799 3.82812V195.548H806.389C827.179 195.548 836.479 186.508 836.479 167.338V33.6881C836.479 15.3381 827.449 3.83812 806.659 3.83812H761.789L761.799 3.82812ZM792.989 171.448V28.4781H798.459C802.839 28.4781 805.299 31.2181 805.299 36.6981V165.698C805.299 169.528 803.389 171.448 799.829 171.448H792.989Z" fill="#FFFFFF"/>
+          <path d="M861.418 3.82812L840.898 195.548H869.618L874.818 142.958H893.968L898.888 195.548H928.978L907.928 3.82812H861.418ZM884.668 41.8981L891.778 119.138H877.008L884.668 41.8981Z" fill="#FFFFFF"/>
+          <path d="M995.862 3.82812H919.262V28.4781H941.152V195.548H973.982V28.4781H995.872V3.82812H995.862Z" fill="#FFFFFF"/>
+          <path d="M1003.81 3.5625V195.553H1036.64V3.5625H1003.81Z" fill="#FFFFFF"/>
+          <path d="M1085.1 0C1059.38 0 1048.17 14.24 1048.17 33.69V163.78C1048.17 187.61 1061.03 199.66 1085.1 199.66C1109.17 199.66 1122.85 187.61 1122.85 165.42V33.69C1122.85 15.89 1109.72 0 1085.1 0ZM1085.38 29.58C1089.48 29.58 1091.67 31.5 1091.67 36.43V163.79C1091.67 169.54 1090.31 172.28 1085.65 172.28C1081.28 172.28 1079.64 169.82 1079.64 163.79L1079.36 36.43C1079.36 31.77 1081.56 29.58 1085.38 29.58Z" fill="#FFFFFF"/>
+          <path d="M1133.36 3.82812V195.548H1161.27V82.9781L1187.25 195.548H1219.53V3.82812H1192.17V103.248L1170.84 3.82812H1133.35H1133.36Z" fill="#FFFFFF"/>
+          <path d="M1301.95 195.548V104.618H1330.4V81.6081H1301.95V28.7581H1334.23V3.82812H1269.94V195.548H1301.95Z" fill="#FFFFFF"/>
+          <path d="M1377.01 0C1351.29 0 1340.08 14.24 1340.08 33.69V163.78C1340.08 187.61 1352.94 199.66 1377.01 199.66C1401.08 199.66 1414.76 187.61 1414.76 165.42V33.69C1414.76 15.89 1401.63 0 1377.01 0ZM1377.29 29.58C1381.38 29.58 1383.58 31.5 1383.58 36.43V163.79C1383.58 169.54 1382.21 172.28 1377.56 172.28C1373.19 172.28 1371.55 169.82 1371.55 163.79L1371.27 36.43C1371.27 31.77 1373.46 29.58 1377.29 29.58Z" fill="#FFFFFF"/>
+          <path d="M1425.84 3.82812V195.548H1455.94V103.528H1460.86C1465.79 103.528 1469.35 106.268 1469.35 113.658V179.388C1469.35 190.348 1471.81 193.078 1474.28 195.548H1504.92C1502.18 193.358 1499.72 188.428 1499.72 182.398V116.118C1499.72 100.228 1488.5 92.5681 1476.19 92.2881C1488.5 91.1881 1500.82 81.0581 1500.82 64.0781V34.2281C1500.82 17.2481 1488.78 3.82812 1469.08 3.82812H1425.86H1425.84ZM1455.94 28.7481H1461.95C1465.23 28.7481 1469.34 30.1181 1469.34 37.5081V73.1081C1469.34 77.2181 1466.88 81.5981 1461.67 81.5981H1455.93V28.7581L1455.94 28.7481Z" fill="#FFFFFF"/>
+          <path d="M416.821 228.312L396.301 420.033H425.021L430.221 367.443H449.371L454.291 420.033H484.381L463.321 228.312H416.811H416.821ZM440.071 266.383L447.181 343.612H432.411L440.071 266.383Z" fill="#FFFFFF"/>
+          <path d="M494.621 228.312V420.033H521.981V302.263L543.871 420.033H566.301L586.001 302.533V420.033H613.361V228.312H571.781L555.911 332.393L540.861 228.312H494.631H494.621Z" fill="#FFFFFF"/>
+          <path d="M689.342 420.033V395.112H658.432V329.103H686.882V306.092H658.432V253.232H690.712V228.312H626.422V420.033H689.342Z" fill="#FFFFFF"/>
+          <path d="M703.049 228.307V420.027H733.139V327.997H738.059C742.979 327.997 746.539 330.737 746.539 338.127V403.857C746.539 414.817 748.999 417.547 751.459 420.017H782.099C779.369 417.827 776.899 412.897 776.899 406.867V340.587C776.899 324.707 765.679 317.037 753.369 316.757C765.679 315.667 777.989 305.527 777.989 288.547V258.697C777.989 241.717 765.949 228.297 746.259 228.297H703.039L703.049 228.307ZM733.139 253.227H739.159C742.439 253.227 746.549 254.597 746.549 261.987V297.597C746.549 301.707 744.089 306.087 738.889 306.087H733.149V253.227H733.139Z" fill="#FFFFFF"/>
+          <path d="M790.031 228.039V420.029H822.861V228.039H790.031Z" fill="#FFFFFF"/>
+          <path d="M878.092 294.317H907.912V255.977C907.912 238.177 896.152 224.477 871.532 224.477C846.912 224.477 834.602 238.717 834.602 258.167V388.257C834.602 412.087 847.462 424.137 871.532 424.137C895.602 424.137 907.912 412.087 907.912 389.897V343.887H878.092V388.257C878.092 394.007 876.722 396.747 872.072 396.747C867.692 396.747 866.052 394.287 866.052 388.257L865.782 260.897C865.782 256.237 867.972 254.047 871.802 254.047C875.902 254.047 878.092 255.967 878.092 260.897V294.307V294.317Z" fill="#FFFFFF"/>
+          <path d="M933.02 228.312L912.5 420.033H941.22L946.42 367.443H965.57L970.49 420.033H1000.58L979.52 228.312H933.01H933.02ZM956.27 266.383L963.38 343.612H948.61L956.27 266.383Z" fill="#FFFFFF"/>
+          <path d="M1009.22 228.312V420.033H1037.12V307.462L1063.11 420.033H1095.39V228.312H1068.03V327.733L1046.69 228.312H1009.22Z" fill="#FFFFFF"/>
+          <path d="M1144.73 228.039V420.029H1177.56V228.039H1144.73Z" fill="#FFFFFF"/>
+          <path d="M1189.27 228.312V420.033H1217.17V307.462L1243.16 420.033H1275.44V228.312H1248.08V327.733L1226.74 228.312H1189.27Z" fill="#FFFFFF"/>
+          <path d="M1287.26 228.312V420.033H1315.16V307.462L1341.15 420.033H1373.42V228.312H1346.06V327.733L1324.73 228.312H1287.26Z" fill="#FFFFFF"/>
+          <path d="M1421.43 224.479C1395.71 224.479 1384.5 238.719 1384.5 258.169V388.259C1384.5 412.089 1397.36 424.139 1421.43 424.139C1445.5 424.139 1459.18 412.089 1459.18 389.899V258.159C1459.18 240.359 1446.06 224.469 1421.43 224.469V224.479ZM1421.71 254.059C1425.81 254.059 1428 255.979 1428 260.909V388.269C1428 394.019 1426.64 396.759 1421.99 396.759C1417.61 396.759 1415.97 394.299 1415.97 388.269L1415.69 260.909C1415.69 256.249 1417.89 254.059 1421.71 254.059Z" fill="#FFFFFF"/>
+          <path d="M1493.99 228.312H1463.89L1484.96 420.033H1531.46L1551.98 228.312H1523.26L1508.48 380.592L1493.98 228.312H1493.99Z" fill="#FFFFFF"/>
+          <path d="M1563.27 228.312L1542.75 420.033H1571.47L1576.67 367.443H1595.82L1600.75 420.033H1630.85L1609.78 228.312H1563.28H1563.27ZM1586.52 266.383L1593.63 343.612H1578.85L1586.52 266.383Z" fill="#FFFFFF"/>
+          <path d="M1698.81 228.312H1622.22V252.963H1644.11V420.033H1676.94V252.963H1698.82V228.312H1698.81Z" fill="#FFFFFF"/>
+          <path d="M1706.75 228.039V420.029H1739.58V228.039H1706.75Z" fill="#FFFFFF"/>
+          <path d="M1785.88 224.479C1760.16 224.479 1748.95 238.719 1748.95 258.169V388.259C1748.95 412.089 1761.81 424.139 1785.88 424.139C1809.95 424.139 1823.63 412.089 1823.63 389.899V258.159C1823.63 240.359 1810.5 224.469 1785.88 224.469V224.479ZM1786.16 254.059C1790.26 254.059 1792.45 255.979 1792.45 260.909V388.269C1792.45 394.019 1791.09 396.759 1786.43 396.759C1782.06 396.759 1780.42 394.299 1780.42 388.269L1780.14 260.909C1780.14 256.249 1782.34 254.059 1786.16 254.059Z" fill="#FFFFFF"/>
+          <path d="M1833.82 228.312V420.033H1861.73V307.462L1887.71 420.033H1919.99V228.312H1892.63V327.733L1871.3 228.312H1833.81H1833.82Z" fill="#FFFFFF"/>
+        </svg>
+      </div>
+      <div class="header-meta">Last Updated: March 9, 2026</div>
+    </div>
+    <h1>NEPA EIS Dashboard</h1>
+    <div class="subtitle">Environmental Impact Statement Timelines & Litigation Tracking</div>
+    <nav class="nav-tabs">
+      <a class="nav-tab" href="index.html">EIS Timelines</a>
+      <a class="nav-tab active" href="litigation.html">Litigation</a>
+    </nav>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Beta Banner -->
+  <div class="beta-banner">
+    <span class="beta-tag">Beta</span>
+    <div class="beta-text">
+      <strong>This litigation dataset is incomplete and actively being expanded.</strong>
+      Core data (2012&ndash;2022) comes from the Breakthrough Institute's hand-curated <em>Navigating NEPA</em> database of ~1,800 cases.
+      Coverage for 2010&ndash;2012 and 2022&ndash;2026 is supplemented via CourtListener keyword-matched published opinions and is substantially less complete.
+      Case volumes outside the 2012&ndash;2022 window reflect data availability, not actual litigation trends.
+      Duration data is available for BTI cases only.
+    </div>
+  </div>
+
+  <!-- Litigation KPIs -->
+  <div class="kpi-row">
+    <div class="kpi"><div class="value" id="litTotal">—</div><div class="label">Total Cases</div></div>
+    <div class="kpi blue"><div class="value" id="litAgencyWin">—</div><div class="label">Agency Win Rate</div></div>
+    <div class="kpi yellow"><div class="value" id="litMedianDays">—</div><div class="label">Median Duration</div></div>
+  </div>
+
+  <!-- Litigation Charts -->
+  <div class="grid-2">
+    <div class="card">
+      <h2>Litigation Cases by Year <small>(filed)</small></h2>
+      <div class="chart-container"><canvas id="chartLitByYear"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Agency Win Rate by Year</h2>
+      <div class="chart-container"><canvas id="chartLitWinRate"></canvas></div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <h2>Most Litigated Agencies</h2>
+      <div class="chart-container tall"><canvas id="chartLitAgency"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Cases by Project Category</h2>
+      <div class="chart-container tall"><canvas id="chartLitCategory"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Litigation Filters + Table -->
+  <div class="global-filters" style="margin-bottom:0.5rem;padding:0.75rem 1.25rem">
+    <div class="filter-group">
+      <label>Agency</label>
+      <select id="litAgency"><option value="">All Agencies</option></select>
+    </div>
+    <div class="filter-group">
+      <label>Circuit</label>
+      <select id="litCircuit"><option value="">All Circuits</option></select>
+    </div>
+    <div class="filter-group">
+      <label>Prevailing Party</label>
+      <select id="litPrev">
+        <option value="">All</option>
+        <option value="Agency">Agency</option>
+        <option value="Challenger">Challenger</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Filed Year From</label>
+      <select id="litYearFrom"></select>
+    </div>
+    <div class="filter-group">
+      <label>To</label>
+      <select id="litYearTo"></select>
+    </div>
+    <div class="filter-group">
+      <label>Search</label>
+      <input id="litSearch" type="text" placeholder="Case or project name..." style="width:180px">
+    </div>
+    <button class="filter-reset" onclick="resetLitFilters()">Reset</button>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table id="litTable">
+        <thead><tr>
+          <th onclick="sortTable('litTable',0)">Case</th>
+          <th onclick="sortTable('litTable',1)">Plaintiff(s)</th>
+          <th onclick="sortTable('litTable',2)">Agency</th>
+          <th onclick="sortTable('litTable',3)">Court</th>
+          <th onclick="sortTable('litTable',4)">Project</th>
+          <th onclick="sortTable('litTable',5)">Filed</th>
+          <th onclick="sortTable('litTable',6)">Duration</th>
+          <th onclick="sortTable('litTable',7)">Outcome</th>
+        </tr></thead>
+        <tbody id="litBody"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:0.75rem;font-family:'IBM Plex Sans',sans-serif;font-size:0.75rem;color:var(--muted)">
+      Showing <span id="litRowCount">0</span> litigation records.
+      Source: <a href="https://navigatingnepa.com/" target="_blank" style="color:var(--orange)">Navigating NEPA / Breakthrough Institute</a> (2012&ndash;2022) &amp;
+      <a href="https://www.courtlistener.com/" target="_blank" style="color:var(--orange)">CourtListener</a> (2022&ndash;2026).
+    </div>
+  </div>
+
+  <div class="source-note">
+    <strong>Data Sources &amp; Methodology:</strong><br>
+    Primary litigation data from <a href="https://navigatingnepa.com/" target="_blank">Navigating NEPA</a> (Breakthrough Institute / Holland &amp; Knight), covering ~1,800 hand-curated NEPA cases from 2012&ndash;2022 with full metadata including plaintiffs, agencies, courts, project names, prevailing party, and days in litigation.<br>
+    Supplemented with federal court opinions from <a href="https://www.courtlistener.com/" target="_blank">CourtListener</a> (Free Law Project) for 2022&ndash;2026 coverage via keyword matching on "National Environmental Policy Act" and related statutory references.<br>
+    Agency win rate calculated as percentage of cases with a clear NEPA-claim outcome where the agency prevailed. Duration reflects days from challenge filing to court ruling (BTI data only).<br>
+    This dataset is actively being expanded. Contributions and corrections welcome.
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CHART UTILITIES
+// ============================================================
+let charts = {};
+const ORANGE='#FF4F00', BLUE='#4997D0', YELLOW='#FFA300', TIMBER='#D9D9D6', COD='#121212', WHITE='#FFFFFF';
+
+Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
+Chart.defaults.color = '#999';
+
+function makeScaleOpts(xTitle, yTitle) {
+  return {
+    x: { ticks: { color: '#999', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.06)' }, title: xTitle ? { display: true, text: xTitle, color: '#999', font: { size: 10 } } : undefined },
+    y: { ticks: { color: '#999', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.06)' }, title: yTitle ? { display: true, text: yTitle, color: '#999', font: { size: 10 } } : undefined }
+  };
+}
+
+function updateChart(id, type, data, extraOpts, noScales) {
+  if (charts[id]) { charts[id].destroy(); }
+  const baseOpts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: '#999', font: { size: 11 } } },
+      tooltip: { backgroundColor: '#1a1a1a', titleColor: WHITE, bodyColor: '#999', borderColor: '#2a2a2a', borderWidth: 1 }
+    }
+  };
+  if (!noScales && !extraOpts.scales) {
+    baseOpts.scales = makeScaleOpts();
+  }
+  const opts = mergeDeep(baseOpts, extraOpts);
+  charts[id] = new Chart(document.getElementById(id), { type, data, options: opts });
+}
+
+function mergeDeep(target, source) {
+  const out = {...target};
+  for (const key in source) {
+    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+      out[key] = mergeDeep(out[key] || {}, source[key]);
+    } else {
+      out[key] = source[key];
+    }
+  }
+  return out;
+}
+
+// Table sorting
+let sortState = {};
+function sortTable(tableId, col) {
+  const key = tableId + col;
+  sortState[key] = !(sortState[key]);
+  const asc = sortState[key];
+  const tbody = document.getElementById(tableId).querySelector('tbody');
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  rows.sort((a,b) => {
+    let av = a.children[col].textContent.trim();
+    let bv = b.children[col].textContent.trim();
+    const an = parseFloat(av), bn = parseFloat(bv);
+    if (!isNaN(an) && !isNaN(bn)) return asc ? an-bn : bn-an;
+    return asc ? av.localeCompare(bv) : bv.localeCompare(av);
+  });
+  rows.forEach(r => tbody.appendChild(r));
+}
+
+// ============================================================
+// LITIGATION DATA
+// ============================================================
+const litRecords = (typeof DATA_LITIGATION !== 'undefined' ? DATA_LITIGATION : []).map(r => ({
+  title: r.t||'', plaintiff: r.pl||'', plaintiffType: r.pt||'',
+  agency: r.ag||'', court: r.ct||'', circuit: r.cir||'', state: r.st||'',
+  project: r.proj||'', cat: r.cat||'', docType: r.doc||'',
+  filed: r.filed||'', ruled: r.ruled||'', days: r.days,
+  prev: r.prev||'', disp: r.disp||'', inj: r.inj||false, vac: r.vac||false,
+  src: r.src||''
+}));
+
+function getFilteredLit() {
+  const ag = document.getElementById('litAgency').value;
+  const cir = document.getElementById('litCircuit').value;
+  const prev = document.getElementById('litPrev').value;
+  const yFrom = parseInt(document.getElementById('litYearFrom').value);
+  const yTo = parseInt(document.getElementById('litYearTo').value);
+  const search = document.getElementById('litSearch').value.toLowerCase();
+  return litRecords.filter(r => {
+    if (r.filed) {
+      const y = parseInt(r.filed.substring(0,4));
+      if (!isNaN(y) && (y < Math.max(yFrom, 2010) || y > yTo)) return false;
+    } else { return false; }
+    if (ag && r.agency !== ag) return false;
+    if (cir && r.circuit !== cir) return false;
+    if (prev && r.prev !== prev) return false;
+    if (search && !r.title.toLowerCase().includes(search) && !r.project.toLowerCase().includes(search)) return false;
+    return true;
+  });
+}
+
+function resetLitFilters() {
+  document.getElementById('litAgency').value = '';
+  document.getElementById('litCircuit').value = '';
+  document.getElementById('litPrev').value = '';
+  const lf = document.getElementById('litYearFrom');
+  const lt = document.getElementById('litYearTo');
+  lf.value = lf.options[0].value;
+  lt.value = lt.options[lt.options.length-1].value;
+  document.getElementById('litSearch').value = '';
+  applyLitFilters();
+}
+
+function computeLitStats(recs) {
+  const total = recs.length;
+  const withOutcome = recs.filter(r => r.prev === 'Agency' || r.prev === 'Challenger');
+  const agencyWins = withOutcome.filter(r => r.prev === 'Agency').length;
+  const winRate = withOutcome.length > 0 ? (agencyWins / withOutcome.length * 100) : 0;
+  const daysArr = recs.filter(r => r.days > 0).map(r => r.days).sort((a,b) => a-b);
+  const median = daysArr.length > 0
+    ? (daysArr.length % 2 === 0 ? (daysArr[daysArr.length/2-1]+daysArr[daysArr.length/2])/2 : daysArr[Math.floor(daysArr.length/2)])
+    : 0;
+  return { total, winRate, medianDays: median };
+}
+
+function applyLitFilters() {
+  const filtered = getFilteredLit();
+  const stats = computeLitStats(filtered);
+
+  // KPIs
+  document.getElementById('litTotal').textContent = stats.total.toLocaleString();
+  document.getElementById('litAgencyWin').textContent = stats.winRate > 0 ? stats.winRate.toFixed(0) + '%' : '—';
+  document.getElementById('litMedianDays').textContent = stats.medianDays > 0 ? (stats.medianDays / 365.25).toFixed(1) + ' yrs' : '—';
+
+  // Cases by year
+  const byYear = {};
+  filtered.forEach(r => {
+    if (!r.filed) return;
+    const y = parseInt(r.filed.substring(0,4));
+    if (isNaN(y)) return;
+    if (!byYear[y]) byYear[y] = [];
+    byYear[y].push(r);
+  });
+  const litYears = Object.keys(byYear).map(Number).sort();
+  const litCounts = litYears.map(y => byYear[y].length);
+
+  updateChart('chartLitByYear', 'bar', {
+    labels: litYears,
+    datasets: [{ label:'Cases Filed', data: litCounts, backgroundColor: ORANGE, borderRadius: 4 }]
+  }, { plugins:{legend:{display:false}}, scales: makeScaleOpts(null, 'Count') });
+
+  // Win rate by year
+  const winRates = litYears.map(y => {
+    const yRecs = byYear[y];
+    const wo = yRecs.filter(r => r.prev === 'Agency' || r.prev === 'Challenger');
+    if (wo.length < 3) return null;
+    return (wo.filter(r => r.prev === 'Agency').length / wo.length * 100);
+  });
+
+  updateChart('chartLitWinRate', 'line', {
+    labels: litYears,
+    datasets: [{ label:'Agency Win Rate %', data: winRates, borderColor: BLUE, fill:false, tension:0.3, pointRadius:3, spanGaps: true }]
+  }, { scales: { ...makeScaleOpts(null, '%'), y: { ...makeScaleOpts(null, '%').y, min:0, max:100 } } });
+
+  // By agency
+  const byAgency = {};
+  filtered.forEach(r => {
+    if (!r.agency) return;
+    byAgency[r.agency] = (byAgency[r.agency]||0) + 1;
+  });
+  const agencyEntries = Object.entries(byAgency).sort((a,b) => b[1]-a[1]);
+  const topAgencies = agencyEntries.slice(0, 15);
+  if (agencyEntries.length > 15) {
+    const otherCount = agencyEntries.slice(15).reduce((s,e) => s+e[1], 0);
+    topAgencies.push([`Other (${agencyEntries.length-15})`, otherCount]);
+  }
+
+  updateChart('chartLitAgency', 'bar', {
+    labels: topAgencies.map(e => e[0]),
+    datasets: [{ label:'Cases', data: topAgencies.map(e => e[1]), backgroundColor: ORANGE, borderRadius: 4 }]
+  }, { indexAxis:'y', plugins:{legend:{display:false}}, scales: makeScaleOpts('Count', null) });
+
+  // By category
+  const byCat = {};
+  filtered.forEach(r => {
+    const c = r.cat || 'Uncategorized';
+    byCat[c] = (byCat[c]||0) + 1;
+  });
+  const catEntries = Object.entries(byCat).sort((a,b) => b[1]-a[1]);
+
+  updateChart('chartLitCategory', 'bar', {
+    labels: catEntries.map(e => e[0]),
+    datasets: [{ label:'Cases', data: catEntries.map(e => e[1]), backgroundColor: BLUE, borderRadius: 4 }]
+  }, { indexAxis:'y', plugins:{legend:{display:false}}, scales: makeScaleOpts('Count', null) });
+
+  // Table
+  renderLitTable(filtered);
+}
+
+function renderLitTable(records) {
+  const tbody = document.getElementById('litBody');
+  tbody.innerHTML = records.map(r => {
+    const durationStr = r.days > 0 ? (r.days / 365.25).toFixed(1) + ' yrs' : '—';
+    const outcomeStr = r.prev ? `${r.prev}${r.disp ? ' — ' + r.disp : ''}` : (r.disp || '—');
+    const badgeClass = r.prev === 'Agency' ? 'badge-complete' : r.prev === 'Challenger' ? 'badge-long' : 'badge-underway';
+    return `<tr>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis" title="${r.title}">${r.title}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis" title="${r.plaintiff}">${r.plaintiff || '—'}</td>
+      <td style="white-space:nowrap">${r.agency || '—'}</td>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis" title="${r.court}">${r.court || '—'}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis" title="${r.project}">${r.project || '—'}</td>
+      <td style="white-space:nowrap">${r.filed || '—'}</td>
+      <td style="text-align:right">${durationStr}</td>
+      <td><span class="badge ${badgeClass}">${r.prev || '—'}</span></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('litRowCount').textContent = records.length;
+}
+
+function initLitFilters() {
+  const litAgencies = [...new Set(litRecords.map(r => r.agency).filter(Boolean))].sort();
+  const agSel = document.getElementById('litAgency');
+  litAgencies.forEach(a => agSel.appendChild(Object.assign(document.createElement('option'),{value:a,textContent:a})));
+
+  const circuits = [...new Set(litRecords.map(r => r.circuit).filter(Boolean))].sort((a,b) => {
+    const na = parseInt(a), nb = parseInt(b);
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+    return a.localeCompare(b);
+  });
+  const cirSel = document.getElementById('litCircuit');
+  circuits.forEach(c => cirSel.appendChild(Object.assign(document.createElement('option'),{value:c,textContent:c})));
+
+  const litMin = 2010, litMax = 2026;
+  const yfSel = document.getElementById('litYearFrom');
+  const ytSel = document.getElementById('litYearTo');
+  for (let y = litMin; y <= litMax; y++) {
+    yfSel.appendChild(Object.assign(document.createElement('option'),{value:y,textContent:y}));
+    ytSel.appendChild(Object.assign(document.createElement('option'),{value:y,textContent:y}));
+  }
+  yfSel.value = String(litMin); ytSel.value = String(litMax);
+
+  ['litAgency','litCircuit','litPrev','litYearFrom','litYearTo'].forEach(id => {
+    document.getElementById(id).addEventListener('change', applyLitFilters);
+  });
+  document.getElementById('litSearch').addEventListener('input', applyLitFilters);
+}
+
+initLitFilters();
+applyLitFilters();
+</script>
+</body>
+</html>
