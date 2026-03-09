@@ -394,7 +394,7 @@
       <select id="gfAgency"><option value="">All Agencies</option></select>
     </div>
     <div class="filter-group">
-      <label>Year (ROD) From</label>
+      <label>Year (FEIS) From</label>
       <select id="gfYearFrom"></select>
     </div>
     <div class="filter-group">
@@ -427,7 +427,7 @@
   <div class="section-title">Annual Trends</div>
   <div class="grid-2">
     <div class="card">
-      <h2>EIS Completions by Year <small>(ROD Published)</small></h2>
+      <h2>EIS Completions by Year <small>(FEIS Published)</small></h2>
       <div class="chart-container"><canvas id="chartCompletions"></canvas></div>
     </div>
     <div class="card">
@@ -441,7 +441,7 @@
       <div class="chart-container"><canvas id="chartMeanMedian"></canvas></div>
     </div>
     <div class="card">
-      <h2>% Completed Within 2 Years <small>(by ROD year)</small></h2>
+      <h2>% Completed Within 2 Years <small>(by FEIS year)</small></h2>
       <div class="chart-container"><canvas id="chartUnder2yr"></canvas></div>
     </div>
   </div>
@@ -473,7 +473,7 @@
   </div>
 
   <!-- Completed Table -->
-  <div class="section-title">Completed EIS Records (ROD Published)</div>
+  <div class="section-title">Completed EIS Records (FEIS Published)</div>
   <div class="card">
     <div class="table-wrap">
       <table id="completedTable">
@@ -583,9 +583,9 @@ function getFilteredCompleted() {
   return completedRecords.filter(r => {
     if (agency && r.agency !== agency) return false;
     if (cat && r.cat !== cat) return false;
-    if (r.rod) {
-      const rodYear = parseInt(r.rod.substring(0,4));
-      if (!isNaN(rodYear) && (rodYear < yFrom || rodYear > yTo)) return false;
+    if (r.feis) {
+      const feisYear = parseInt(r.feis.substring(0,4));
+      if (!isNaN(feisYear) && (feisYear < yFrom || feisYear > yTo)) return false;
     }
     if (search && !r.name.toLowerCase().includes(search)) return false;
     return true;
@@ -636,8 +636,8 @@ function computeStats(records) {
 function groupByYear(records) {
   const byYear = {};
   records.forEach(r => {
-    if (!r.rod) return;
-    const y = parseInt(r.rod.substring(0,4));
+    if (!r.feis) return;
+    const y = parseInt(r.feis.substring(0,4));
     if (isNaN(y)) return;
     if (!byYear[y]) byYear[y] = [];
     byYear[y].push(r);
