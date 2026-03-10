@@ -253,8 +253,6 @@
   .badge-complete { background: rgba(73,151,208,0.15); color: var(--blue); }
   .badge-underway { background: rgba(255,163,0,0.15); color: var(--yellow); }
   .badge-long { background: rgba(255,79,0,0.15); color: var(--orange); }
-  .badge-challenged { background: rgba(255,163,0,0.12); color: var(--yellow); font-size: 0.6rem; }
-
   /* Navigation Tabs */
   .nav-tabs {
     display: flex;
@@ -411,7 +409,7 @@
       <div class="header-meta">Last Updated: March 9, 2026</div>
     </div>
     <h1>NEPA EIS Dashboard</h1>
-    <div class="subtitle">Environmental Impact Statement Timelines & Litigation Tracking</div>
+    <div class="subtitle">Environmental Impact Statement Timelines</div>
     <!-- Nav tabs hidden while litigation page is in development -->
     <!--<nav class="nav-tabs">
       <a class="nav-tab active" href="index.html">EIS Timelines</a>
@@ -599,45 +597,6 @@
 // ============================================================
 const completedRecords = DATA_COMPLETED.map(r => ({name:r.n, agency:r.a, cat:r.c, state:r.s, noi:r.noi, feis:r.feis, rod:r.rod, durFeis:r.df, dur:r.d}));
 const underwayRecords = DATA_UNDERWAY.map(r => ({name:r.n, agency:r.a, cat:r.c, state:r.s, noi:r.noi, latest:r.l, elapsed:r.e}));
-
-// Build set of EIS project names that were challenged in court
-const challengedEIS = (function() {
-  const cSet = new Set();
-  const litRaw = typeof DATA_LITIGATION !== 'undefined' ? DATA_LITIGATION : [];
-  if (!litRaw.length) return cSet;
-  const agFam = {'BLM':'DOI','NPS':'DOI','USFWS':'DOI','BOR':'DOI','BR':'DOI','BOEM':'DOI','BSEE':'DOI','BIA':'DOI','OSM':'DOI','DOI':'DOI','FWS':'DOI','OSMRE':'DOI',
-    'USFS':'USDA','USDA':'USDA','APHIS':'USDA','ARS':'USDA','FHWA':'DOT','FTA':'DOT','FAA':'DOT','DOT':'DOT','FRA':'DOT',
-    'NMFS':'NOAA','NOAA':'NOAA','FERC':'FERC','USACE':'USACE','DOS':'DOS','EPA':'EPA','DOE':'DOE','DOD':'DOD','TVA':'TVA','NRC':'NRC','BPA':'DOE'};
-  const agM = (a,b) => { if(!a||!b)return false; a=a.toUpperCase();b=b.toUpperCase(); return a===b||(agFam[a]||a)===(agFam[b]||b); };
-  const nm = s => s.toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
-  const skip = ['generic environmental impact statement','programmatic environmental impact','resource management plan amendment',
-    'habitat conservation plan','revised land and resource management plan','central valley project','national flood insurance program',
-    'predator damage management','oil and gas leasing program','outer continental shelf','phase iii early restoration',
-    'nuclear spent fuel','comprehensive everglades restoration plan','general conservation plan','range wide general conservation',
-    'northeast multispecies fishery management plan','atlantic herring fishery management plan','bering sea and ale','steller sea lion'];
-  const lps = litRaw.filter(r => r.proj && r.proj.length >= 20).filter(r => { const np = nm(r.proj); return !skip.some(g => np.includes(g)); });
-  completedRecords.forEach(eis => {
-    const ne = nm(eis.name);
-    for (const lp of lps) {
-      if (!agM(lp.ag, eis.agency)) continue;
-      const np = nm(lp.proj);
-      if (np.length >= 20 && ne.includes(np)) { cSet.add(eis.name); return; }
-    }
-    const ew = ne.split(' ');
-    if (ew.length >= 5) {
-      for (let wl = Math.min(7,ew.length); wl >= 5; wl--) {
-        const core = ew.slice(0,wl).join(' ');
-        if (core.length < 30) continue;
-        for (const lp of lps) {
-          if (!agM(lp.ag, eis.agency)) continue;
-          if (nm(lp.proj).includes(core)) { cSet.add(eis.name); return; }
-        }
-        if (cSet.has(eis.name)) return;
-      }
-    }
-  });
-  return cSet;
-})();
 
 // ============================================================
 // CHART INSTANCES (stored for redraws)
@@ -937,11 +896,7 @@ function mergeDeep(target, source) {
 function renderCompletedTable(records) {
   const tbody = document.getElementById('completedBody');
   tbody.innerHTML = records.map(r => {
-    const isChallenged = challengedEIS.has(r.name);
-    const challengeBadge = isChallenged ? '<span class="badge badge-challenged" title="This EIS was challenged in court" style="flex-shrink:0">⚖ Challenged</span>' : '';
-    const nameCell = isChallenged
-      ? `<td style="max-width:300px" title="${r.name}"><div style="display:flex;align-items:center;gap:6px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name}</span>${challengeBadge}</div></td>`
-      : `<td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.name}">${r.name}</td>`;
+    const nameCell = `<td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.name}">${r.name}</td>`;
     return `<tr>
     ${nameCell}
     <td style="white-space:nowrap;max-width:50px;overflow:hidden;text-overflow:ellipsis">${r.agency}</td><td style="white-space:normal;max-width:100px">${r.cat}</td><td style="white-space:normal;max-width:60px">${r.state}</td>
