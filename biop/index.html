@@ -166,7 +166,7 @@
       <span class="header-meta">Data from USFWS ECOSPHERE · Last updated March 2026</span>
     </div>
     <h1>ESA Section 7 Biological Opinions Dashboard</h1>
-    <p class="subtitle">USFWS formal consultations under the Endangered Species Act — 4,694 biological opinions (1989–2026)</p>
+    <p class="subtitle">USFWS formal consultations under the Endangered Species Act (2008–2026)</p>
     <div class="header-tags">
       <span>USFWS ECOSPHERE</span>
       <span>ESA Section 7</span>
@@ -207,10 +207,6 @@
       <select id="fAgency"><option value="">All Agencies</option></select>
     </div>
     <div class="filter-group">
-      <label>FWS Office</label>
-      <select id="fOffice"><option value="">All Offices</option></select>
-    </div>
-    <div class="filter-group">
       <label>Species</label>
       <select id="fSpecies"><option value="">All Species</option></select>
     </div>
@@ -230,19 +226,12 @@
     <div class="kpi"><div class="value" id="kTotal">—</div><div class="label">Total Biological Opinions</div></div>
     <div class="kpi blue"><div class="value" id="kSpecies">—</div><div class="label">Unique Species Consulted</div></div>
     <div class="kpi yellow"><div class="value" id="kAgencies">—</div><div class="label">Lead Agencies</div></div>
-    <div class="kpi timber"><div class="value" id="kOffices">—</div><div class="label">FWS Field Offices</div></div>
   </div>
 
   <h2 class="section-title">Who Consults?</h2>
-  <div class="grid-2">
-    <div class="card">
-      <h2>Top Lead Agencies <small>action agencies requesting consultation</small></h2>
-      <div class="chart-container tall"><canvas id="chartAgency"></canvas></div>
-    </div>
-    <div class="card">
-      <h2>Top FWS Field Offices <small>offices issuing biological opinions</small></h2>
-      <div class="chart-container tall"><canvas id="chartOffice"></canvas></div>
-    </div>
+  <div class="card" style="margin-bottom:1.5rem">
+    <h2>Top Lead Agencies <small>action agencies requesting consultation</small></h2>
+    <div class="chart-container tall"><canvas id="chartAgency"></canvas></div>
   </div>
 
   <h2 class="section-title">Species</h2>
@@ -301,23 +290,22 @@ const chartDefaults = {
 Chart.defaults.color = chartDefaults.color;
 Chart.defaults.font.family = chartDefaults.font.family;
 
-let filtered = [...BIOP_DATA];
+// Filter to 2008+ (mandatory TAILS collection era)
+const BASE_DATA = BIOP_DATA.filter(d => d.d >= '2008-01-01');
+let filtered = [...BASE_DATA];
 let charts = {};
 let currentSort = { col: 0, asc: false };
 
 // ── Filters ──
 function populateFilters() {
   const agencies = new Map();
-  const offices = new Map();
   const species = new Map();
-  BIOP_DATA.forEach(d => {
+  BASE_DATA.forEach(d => {
     if (d.a) agencies.set(d.a, (agencies.get(d.a)||0)+1);
-    if (d.o) offices.set(d.o, (offices.get(d.o)||0)+1);
     d.sp.forEach(s => species.set(s, (species.get(s)||0)+1));
   });
 
   const sortedAgencies = [...agencies.entries()].sort((a,b)=>b[1]-a[1]);
-  const sortedOffices = [...offices.entries()].sort((a,b)=>b[1]-a[1]);
   const sortedSpecies = [...species.entries()].sort((a,b)=>b[1]-a[1]);
 
   const sel = (id, items) => {
@@ -330,21 +318,18 @@ function populateFilters() {
     });
   };
   sel('fAgency', sortedAgencies);
-  sel('fOffice', sortedOffices);
-  sel('fSpecies', sortedSpecies.slice(0, 100)); // top 100 species
+  sel('fSpecies', sortedSpecies.slice(0, 100));
 }
 
 function applyFilters() {
   const agency = document.getElementById('fAgency').value;
-  const office = document.getElementById('fOffice').value;
   const species = document.getElementById('fSpecies').value;
   const yearFrom = parseInt(document.getElementById('fYearFrom').value) || 0;
   const yearTo = parseInt(document.getElementById('fYearTo').value) || 9999;
 
-  filtered = BIOP_DATA.filter(d => {
+  filtered = BASE_DATA.filter(d => {
     const year = parseInt(d.d.substring(0,4));
     if (agency && d.a !== agency) return false;
-    if (office && d.o !== office) return false;
     if (species && !d.sp.includes(species)) return false;
     if (year < yearFrom || year > yearTo) return false;
     return true;
@@ -354,15 +339,14 @@ function applyFilters() {
 
 function resetFilters() {
   document.getElementById('fAgency').value = '';
-  document.getElementById('fOffice').value = '';
   document.getElementById('fSpecies').value = '';
   document.getElementById('fYearFrom').value = '';
   document.getElementById('fYearTo').value = '';
-  filtered = [...BIOP_DATA];
+  filtered = [...BASE_DATA];
   render();
 }
 
-['fAgency','fOffice','fSpecies','fYearFrom','fYearTo'].forEach(id => {
+['fAgency','fSpecies','fYearFrom','fYearTo'].forEach(id => {
   document.getElementById(id).addEventListener('change', applyFilters);
 });
 
@@ -384,36 +368,19 @@ function render() {
   // KPIs
   const allSpecies = new Set();
   const allAgencies = new Set();
-  const allOffices = new Set();
   filtered.forEach(d => {
     d.sp.forEach(s => allSpecies.add(s));
     if (d.a) allAgencies.add(d.a);
-    if (d.o) allOffices.add(d.o);
   });
   document.getElementById('kTotal').textContent = filtered.length.toLocaleString();
   document.getElementById('kSpecies').textContent = allSpecies.size.toLocaleString();
   document.getElementById('kAgencies').textContent = allAgencies.size.toLocaleString();
-  document.getElementById('kOffices').textContent = allOffices.size.toLocaleString();
 
   // Top 15 agencies
   const topAgencies = countBy(filtered, d => d.a).slice(0, 15);
   makeOrUpdate('chartAgency', 'bar', {
     labels: topAgencies.map(([a]) => a.length > 35 ? a.substring(0,32)+'…' : a),
     datasets: [{ data: topAgencies.map(([,c]) => c), backgroundColor: '#FFA300', borderRadius: 3 }]
-  }, {
-    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true },
-      y: { grid: { display: false }, ticks: { font: { size: 11 } } }
-    }
-  });
-
-  // Top 15 offices
-  const topOffices = countBy(filtered, d => d.o).slice(0, 15);
-  makeOrUpdate('chartOffice', 'bar', {
-    labels: topOffices.map(([a]) => a.length > 35 ? a.substring(0,32)+'…' : a),
-    datasets: [{ data: topOffices.map(([,c]) => c), backgroundColor: '#4997D0', borderRadius: 3 }]
   }, {
     indexAxis: 'y', responsive: true, maintainAspectRatio: false,
     plugins: { legend: { display: false } },
