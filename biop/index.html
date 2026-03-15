@@ -153,6 +153,64 @@
     font-size: 0.95rem; margin-bottom: 0.75rem;
   }
   .method-note a { color: var(--blue); }
+
+  /* Data Quality Section */
+  .dq-highlight {
+    color: var(--orange); font-weight: 700;
+  }
+  .dq-stat-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem; margin: 1.25rem 0;
+  }
+  .dq-stat {
+    background: rgba(255,79,0,0.06); border: 1px solid rgba(255,79,0,0.2);
+    border-radius: 6px; padding: 1rem; text-align: center;
+  }
+  .dq-stat .big {
+    font-family: 'IBM Plex Serif', serif; font-size: 1.6rem; font-weight: 700; color: var(--orange);
+  }
+  .dq-stat .desc {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem;
+  }
+  .heatmap-wrap { overflow-x: auto; margin: 1rem 0; }
+  .heatmap-table {
+    border-collapse: collapse; font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem;
+    min-width: 800px;
+  }
+  .heatmap-table th {
+    background: #1f1f1f; color: var(--orange); padding: 0.4rem 0.5rem;
+    font-family: 'IBM Plex Sans Condensed', sans-serif; font-size: 0.65rem;
+    text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 2px solid var(--orange);
+    text-align: center; white-space: nowrap; cursor: default;
+  }
+  .heatmap-table th:first-child { text-align: left; min-width: 200px; }
+  .heatmap-table td {
+    padding: 0.35rem 0.5rem; text-align: center; border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .heatmap-table td:first-child {
+    text-align: left; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.75rem;
+    color: var(--text); max-width: 220px; overflow: hidden; text-overflow: ellipsis;
+  }
+  .hm-0 { color: #444; }
+  .hm-low { color: #8B6914; }
+  .hm-med { color: var(--yellow); }
+  .hm-high { color: var(--orange); font-weight: 700; }
+  .hm-hot { color: #FF2200; font-weight: 700; }
+  .heatmap-table tr:hover td { background: rgba(255,255,255,0.03); }
+
+  .dq-prose {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.85rem; color: var(--text);
+    line-height: 1.7; margin-top: 1rem;
+  }
+  .dq-prose p { margin-bottom: 0.75rem; }
+  .dq-prose strong { color: var(--white); }
+  .dq-prose em { color: var(--muted); font-style: italic; }
+  .dq-callout {
+    background: rgba(255,79,0,0.05); border-left: 3px solid var(--orange);
+    padding: 0.75rem 1rem; margin: 1rem 0; border-radius: 0 6px 6px 0;
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.85rem; color: var(--text); line-height: 1.6;
+  }
 </style>
 </head>
 <body>
@@ -173,26 +231,122 @@
 <div class="container">
   <!-- Data context callout -->
   <div class="method-note" style="margin-bottom:1.5rem; border-left: 3px solid var(--orange);">
-    <h3>What this data covers (and doesn't)</h3>
+    <h3>⚠ This data is a small, inconsistent subset of actual ESA consultations</h3>
     <p>
-      When a federal agency's action may harm a listed species, it must consult with the U.S. Fish &amp; Wildlife Service,
-      which issues a <strong>biological opinion</strong> (BiOp). USFWS's internal system (TAILS) logs roughly
-      <strong>~975 formal BiOps per year</strong>. This dashboard shows the <strong>~300–500/year</strong> that appear in
-      USFWS's public <a href="https://reports.ecosphere.fws.gov/FWSPublicReports/Reports/Index?reportname=BiologicalOpinionReport" target="_blank">ECOSPHERE report</a> —
-      a species-linked subset that only includes opinions manually connected to listed species records by field office staff.
-    </p>
-    <p style="margin-top:0.5rem">
-      <strong>Year-over-year trends reflect data entry, not consultation volume.</strong>
-      The apparent 2018 peak (664) was driven by Sacramento, South Florida, and Ohio field offices all entering data
-      simultaneously. South Florida later dropped to zero entries; Ohio fell to single digits. Meanwhile, offices
-      like Maine and West Virginia began entering data for the first time in 2023–2025. Annual totals reflect
-      which offices happen to be entering data, not actual ESA activity levels.
-    </p>
-    <p style="margin-top:0.5rem">
-      <strong>What's missing:</strong> Jeopardy/no-jeopardy findings, incidental take statements,
-      and NMFS/NOAA Fisheries opinions (which cover marine species separately).
+      USFWS produces roughly <strong>~975 formal biological opinions per year</strong> (logged in the mandatory internal
+      TAILS database). This dashboard shows the <strong>~300–500/year</strong> that appear in the public
+      <a href="https://reports.ecosphere.fws.gov/FWSPublicReports/Reports/Index?reportname=BiologicalOpinionReport" target="_blank">ECOSPHERE</a>
+      system — a species-linked subset that depends on voluntary data entry by field staff. Year-over-year trends reflect
+      <strong>data entry patterns, not consultation volumes</strong>. The analysis below demonstrates these data quality
+      problems in detail.
     </p>
   </div>
+
+  <!-- Data Quality Analysis -->
+  <h2 class="section-title" style="color:var(--orange)">Data Quality: Evidence of Unreliable Public Reporting</h2>
+
+  <div class="card" style="margin-bottom:1.5rem">
+    <h2>The TAILS Gap <small>what USFWS logs internally vs. what it publishes</small></h2>
+    <div class="dq-prose">
+      <p>
+        The <strong>Tracking and Integrated Logging System (TAILS)</strong> is USFWS's internal consultation database.
+        Since approximately <strong>2007</strong>, all FWS field offices have been <strong>required</strong> to log every
+        Section 7 consultation — formal and informal — in TAILS. The system is used by roughly 1,400 FWS biologists
+        across all regional and field offices. Per the only comprehensive academic audit (Malcom &amp; Li, 2015, <em>PNAS</em>),
+        TAILS logged <strong>88,290 consultations</strong> (6,829 formal) from January 2008 through April 2015 —
+        an average of <strong>~935 formal biological opinions per year</strong>.
+      </p>
+      <p>
+        ECOSPHERE, the public-facing system, contains a <strong>species-linked subset</strong>: only those opinions that
+        field staff manually connect to a listed species record. This is a separate, voluntary data entry step on top of
+        the mandatory TAILS logging. The result is a massive and inconsistent gap between what USFWS produces and what it
+        publishes.
+      </p>
+    </div>
+    <div class="dq-stat-grid">
+      <div class="dq-stat">
+        <div class="big" id="dqTailsRate">—</div>
+        <div class="desc">Expected formal BiOps/year (TAILS)</div>
+      </div>
+      <div class="dq-stat">
+        <div class="big" id="dqEcoRate">—</div>
+        <div class="desc">Avg. ECOSPHERE records/year (2008–2025)</div>
+      </div>
+      <div class="dq-stat">
+        <div class="big" id="dqCoverage">—</div>
+        <div class="desc">Estimated public coverage rate</div>
+      </div>
+      <div class="dq-stat">
+        <div class="big" id="dqOfficesReporting">—</div>
+        <div class="desc">Offices with ≥10 records/year (avg.)</div>
+      </div>
+    </div>
+    <div class="chart-container" style="height:300px"><canvas id="chartCoverage"></canvas></div>
+    <div style="font-family:'IBM Plex Sans',sans-serif;font-size:0.75rem;color:var(--muted);margin-top:0.5rem;text-align:center">
+      Orange bars: ECOSPHERE records per year. Gray line: estimated TAILS formal BiOp volume (~935–975/year).
+      Coverage ranges from 17% to 70%, with no year approaching full capture.
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:1.5rem">
+    <h2>Office Reporting Heatmap <small>entries per FWS field office per year — offices appear and vanish</small></h2>
+    <div class="dq-prose">
+      <p>
+        If ECOSPHERE reflected actual consultation volumes, we'd expect consistent reporting from each office.
+        Instead, the data shows offices that report heavily for a few years, then stop entirely — and others that
+        appear for the first time a decade into mandatory TAILS reporting. This pattern is diagnostic of
+        <strong>voluntary, inconsistent data entry</strong>, not real changes in ESA workload.
+      </p>
+    </div>
+    <div class="heatmap-wrap">
+      <table class="heatmap-table" id="heatmapTable">
+        <thead><tr id="heatmapHeader"></tr></thead>
+        <tbody id="heatmapBody"></tbody>
+      </table>
+    </div>
+    <div class="dq-callout" style="margin-top:1rem">
+      <strong>Key examples:</strong><br>
+      <strong>South Florida:</strong> 72 entries in 2018 → <strong>0</strong> from 2023 onward. Did South Florida stop having endangered species consultations? No — staff stopped entering data in ECOSPHERE.<br>
+      <strong>Sacramento:</strong> 130 entries in 2018 (the single largest contributor to the "peak year") → 41–50 in recent years, a 60% drop.<br>
+      <strong>Maine:</strong> Zero entries before 2023 → 41 in 2023. Maine didn't suddenly start having ESA consultations — someone started entering data.<br>
+      <strong>West Virginia:</strong> Zero entries before 2024 → 43 in 2025. Same pattern.<br>
+      <strong>Ohio:</strong> 54 in 2018 → single digits by 2022. No biological explanation for a 90% decline in formal consultations.
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:1.5rem">
+    <h2>What This Means <small>implications for ESA transparency</small></h2>
+    <div class="dq-prose">
+      <p>
+        <strong>TAILS is mandatory; ECOSPHERE is not.</strong> Every FWS biologist must log consultations in TAILS — but
+        the additional step of linking those opinions to species records in the public-facing ECOSPHERE system is
+        discretionary. There is no enforcement mechanism, no completeness audit, and no consequence for not entering data.
+        The result: USFWS produces nearly 1,000 formal biological opinions per year, but the public can only see
+        roughly a third of them.
+      </p>
+      <p>
+        <strong>The prior public system (ECOS) was even worse.</strong> ECOS froze entirely in January 2022 and received
+        no new data for over a year. ECOSPHERE, its successor, began a phased migration in 2020 that is still not complete.
+        During the transition, 16 ECOS records (all multi-species opinions from South Florida) were lost entirely —
+        they exist in neither system.
+      </p>
+      <p>
+        <strong>The gold standard remains locked inside USFWS.</strong> The only comprehensive analysis of TAILS data
+        was published by Malcom &amp; Li in 2015, through a data-sharing agreement with the agency. They found that only
+        <strong>2 of 6,829 formal consultations (0.03%)</strong> resulted in jeopardy findings — a statistic impossible
+        to verify or update from public data because ECOSPHERE does not include jeopardy/no-jeopardy outcomes.
+      </p>
+      <p>
+        <strong>This is a transparency problem.</strong> The Endangered Species Act's consultation process affects
+        billions of dollars in federal actions annually. The public reporting system captures a fraction of those consultations,
+        with no consistency guarantees and no outcomes data. Any analysis of ESA consultation trends
+        based on ECOS or ECOSPHERE data — including this dashboard — should be understood as reflecting <em>data entry
+        patterns</em>, not the actual operation of the Endangered Species Act.
+      </p>
+    </div>
+  </div>
+
+  <h2 class="section-title">Browse the Available Data</h2>
 
   <!-- Filters -->
   <div class="global-filters">
@@ -456,7 +610,120 @@ function sortTable(col) {
   renderTable();
 }
 
+// ── Data Quality Analysis ──
+function renderDataQuality() {
+  const years = [];
+  for (let y = 2008; y <= 2025; y++) years.push(y);
+
+  // Count records per year
+  const perYear = {};
+  years.forEach(y => perYear[y] = 0);
+  BASE_DATA.forEach(d => {
+    const y = parseInt(d.d.substring(0,4));
+    if (y >= 2008 && y <= 2025) perYear[y]++;
+  });
+
+  // Coverage stats
+  const TAILS_RATE = 975; // Malcom & Li extrapolation
+  const totalYears = years.length;
+  const totalRecords = years.reduce((s,y) => s + perYear[y], 0);
+  const avgPerYear = Math.round(totalRecords / totalYears);
+  const coverageRate = Math.round((avgPerYear / TAILS_RATE) * 100);
+
+  document.getElementById('dqTailsRate').textContent = '~' + TAILS_RATE;
+  document.getElementById('dqEcoRate').textContent = avgPerYear;
+  document.getElementById('dqCoverage').textContent = coverageRate + '%';
+
+  // Count offices with ≥10 records/year (avg)
+  const officeByYear = {};
+  BASE_DATA.forEach(d => {
+    const y = parseInt(d.d.substring(0,4));
+    if (y < 2008 || y > 2025) return;
+    if (!officeByYear[d.o]) officeByYear[d.o] = {};
+    officeByYear[d.o][y] = (officeByYear[d.o][y] || 0) + 1;
+  });
+  let totalActiveOfficeYears = 0;
+  years.forEach(y => {
+    Object.keys(officeByYear).forEach(office => {
+      if ((officeByYear[office][y] || 0) >= 10) totalActiveOfficeYears++;
+    });
+  });
+  document.getElementById('dqOfficesReporting').textContent = Math.round(totalActiveOfficeYears / totalYears);
+
+  // Coverage gap chart
+  makeOrUpdate('chartCoverage', 'bar', {
+    labels: years.map(String),
+    datasets: [
+      {
+        type: 'bar',
+        data: years.map(y => perYear[y]),
+        backgroundColor: 'rgba(255,79,0,0.7)',
+        borderRadius: 3,
+        label: 'ECOSPHERE records',
+        order: 2
+      },
+      {
+        type: 'line',
+        data: years.map(() => TAILS_RATE),
+        borderColor: '#666',
+        borderDash: [6, 3],
+        borderWidth: 2,
+        pointRadius: 0,
+        label: 'Est. TAILS formal BiOps/year',
+        order: 1
+      }
+    ]
+  }, {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top', labels: { font: { size: 11 }, usePointStyle: true, padding: 16 } },
+      tooltip: {
+        callbacks: {
+          afterBody: function(items) {
+            if (items[0] && items[0].datasetIndex === 0) {
+              const pct = Math.round((items[0].raw / TAILS_RATE) * 100);
+              return 'Coverage: ~' + pct + '% of expected TAILS volume';
+            }
+          }
+        }
+      }
+    },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.05)' } },
+      y: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true,
+        title: { display: true, text: 'Formal BiOps', font: { size: 11 }, color: '#999' }
+      }
+    }
+  });
+
+  // Office heatmap
+  // Get offices sorted by total, take top 20
+  const officeTotals = Object.entries(officeByYear)
+    .map(([name, yrs]) => [name, Object.values(yrs).reduce((s,v)=>s+v,0)])
+    .sort((a,b) => b[1] - a[1]);
+  const topOffices = officeTotals.slice(0, 25);
+
+  const headerRow = document.getElementById('heatmapHeader');
+  headerRow.innerHTML = '<th>FWS Field Office</th>' + years.map(y => `<th>${String(y).slice(2)}</th>`).join('') + '<th>Total</th>';
+
+  const tbody = document.getElementById('heatmapBody');
+  tbody.innerHTML = topOffices.map(([office, total]) => {
+    const cells = years.map(y => {
+      const v = officeByYear[office][y] || 0;
+      let cls = 'hm-0';
+      if (v >= 50) cls = 'hm-hot';
+      else if (v >= 25) cls = 'hm-high';
+      else if (v >= 10) cls = 'hm-med';
+      else if (v > 0) cls = 'hm-low';
+      return `<td class="${cls}">${v || '·'}</td>`;
+    }).join('');
+    const shortName = office.length > 35 ? office.substring(0,32)+'…' : office;
+    return `<tr><td title="${office}">${shortName}</td>${cells}<td style="color:var(--orange);font-weight:700">${total}</td></tr>`;
+  }).join('');
+}
+
 // ── Init ──
+renderDataQuality();
 populateFilters();
 render();
 </script>
