@@ -177,6 +177,23 @@
 </div>
 
 <div class="container">
+  <!-- Data context callout -->
+  <div class="method-note" style="margin-bottom:1.5rem; border-left: 3px solid var(--orange);">
+    <h3>What this data covers (and doesn't)</h3>
+    <p>
+      When a federal agency's action may harm a listed species, it must consult with the U.S. Fish &amp; Wildlife Service,
+      which issues a <strong>biological opinion</strong> (BiOp). USFWS's internal system (TAILS) logs roughly
+      <strong>~975 formal BiOps per year</strong>. This dashboard shows the <strong>~300–500/year</strong> that appear in
+      USFWS's public <a href="https://reports.ecosphere.fws.gov/FWSPublicReports/Reports/Index?reportname=BiologicalOpinionReport" target="_blank">ECOSPHERE report</a> —
+      a species-linked subset that only includes opinions manually connected to listed species records by field office staff.
+    </p>
+    <p style="margin-top:0.5rem">
+      <strong>What's missing:</strong> This data does not include jeopardy/no-jeopardy findings, incidental take statements,
+      or NMFS/NOAA Fisheries opinions (which cover marine species separately). It also undercounts actual consultation
+      volume — particularly before 2014, when fewer offices consistently entered data into the public system.
+    </p>
+  </div>
+
   <!-- Filters -->
   <div class="global-filters">
     <div class="filter-group">
@@ -274,21 +291,17 @@
   </div>
 
   <div class="method-note">
-    <h3>Methodology & Data Notes</h3>
+    <h3>Data Source</h3>
     <p>
-      This dashboard presents <strong>4,694 formal biological opinions</strong> issued by the U.S. Fish and Wildlife Service
-      under Section 7 of the Endangered Species Act, as recorded in the
-      <a href="https://reports.ecosphere.fws.gov/FWSPublicReports/Reports/Index?reportname=BiologicalOpinionReport" target="_blank">ECOSPHERE Biological Opinion Report</a>.
-      The data spans 1989–2026 but is most complete from 2006 onward (when the TAILS tracking system became mandatory).
+      All data from the USFWS
+      <a href="https://reports.ecosphere.fws.gov/FWSPublicReports/Reports/Index?reportname=BiologicalOpinionReport" target="_blank">ECOSPHERE Issued Biological Opinion Report</a>,
+      the public-facing successor to the ECOS system. ECOSPHERE contains the complete ECOS dataset plus
+      records added since the January 2022 platform migration. For comprehensive consultation statistics
+      including informal consultations (~12,000/year), see Malcom &amp; Li (2015),
+      <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4702972/" target="_blank"><em>PNAS</em> 112(52)</a>.
     </p>
     <p style="margin-top:0.5rem">
-      <strong>Key limitations:</strong> This is USFWS only — NMFS/NOAA Fisheries opinions are tracked separately in the ECO system.
-      Jeopardy/no-jeopardy findings and incidental take statements are not available in the public data.
-      The Malcom &amp; Li (2015) PNAS study found ~975 formal consultations per year from the internal TAILS system, suggesting
-      the public ECOSPHERE report captures only a subset. Annual volume before ~2010 is significantly underrepresented.
-    </p>
-    <p style="margin-top:0.5rem">
-      Built by the <a href="https://www.thefai.org" target="_blank">Foundation for American Innovation</a> energy & environment team.
+      Built by the <a href="https://www.thefai.org" target="_blank">Foundation for American Innovation</a> energy &amp; environment team.
     </p>
   </div>
 </div>
