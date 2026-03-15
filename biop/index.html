@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ESA Section 7 Biological Opinions — Foundation for American Innovation</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4"></script>
+<script src="data.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@400;700&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --orange: #FF4F00;
+    --cod: #121212;
+    --white: #FFFFFF;
+    --yellow: #FFA300;
+    --blue: #4997D0;
+    --timber: #D9D9D6;
+    --card: #1a1a1a;
+    --border: #2a2a2a;
+    --muted: #999;
+    --text: #e8e8e8;
+    --green: #4CAF50;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    background: var(--cod);
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  .header {
+    background: var(--cod);
+    padding: 2rem 2rem 0;
+    border-bottom: 3px solid var(--orange);
+  }
+  .header-inner { max-width: 1400px; margin: 0 auto; }
+  .header-top {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;
+  }
+  .header-meta {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.8rem; color: var(--muted);
+  }
+  .header h1 {
+    font-size: 1.75rem; font-weight: 700; color: var(--white); margin-bottom: 0.25rem;
+  }
+  .header .subtitle {
+    font-family: 'IBM Plex Sans', sans-serif; color: var(--muted); font-size: 0.9rem; margin-bottom: 1.25rem;
+  }
+  .header-tags {
+    display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+  }
+  .header-tags span {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.75rem; color: var(--timber);
+    background: rgba(255,79,0,0.1); padding: 0.25rem 0.75rem; border-radius: 4px;
+    border: 1px solid rgba(255,79,0,0.25);
+  }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 1.5rem; }
+
+  .global-filters {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; gap: 1rem;
+    align-items: center; flex-wrap: wrap;
+  }
+  .global-filters label {
+    font-family: 'IBM Plex Sans Condensed', sans-serif; font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em; color: var(--orange); font-weight: 700;
+  }
+  .global-filters select, .global-filters input {
+    font-family: 'IBM Plex Sans', sans-serif; background: var(--cod);
+    border: 1px solid var(--border); color: var(--text); padding: 0.4rem 0.6rem;
+    border-radius: 4px; font-size: 0.85rem; max-width: 250px;
+  }
+  .global-filters select:focus, .global-filters input:focus { outline: none; border-color: var(--orange); }
+  .filter-group { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; flex-shrink: 1; }
+  .filter-reset {
+    font-family: 'IBM Plex Sans', sans-serif; background: var(--orange); color: var(--cod);
+    border: none; padding: 0.4rem 1rem; border-radius: 4px; font-size: 0.8rem;
+    font-weight: 600; cursor: pointer; margin-left: auto;
+  }
+  .filter-reset:hover { opacity: 0.85; }
+
+  .kpi-row {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem; margin-bottom: 1.5rem;
+  }
+  .kpi {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 1.25rem; text-align: center; border-top: 3px solid var(--orange);
+  }
+  .kpi .value {
+    font-family: 'IBM Plex Serif', serif; font-size: 2rem; font-weight: 700; color: var(--orange);
+  }
+  .kpi .label {
+    font-family: 'IBM Plex Sans Condensed', sans-serif; font-size: 0.7rem; color: var(--muted);
+    margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .kpi.blue .value { color: var(--blue); }
+  .kpi.yellow .value { color: var(--yellow); }
+  .kpi.timber .value { color: var(--timber); }
+
+  .section-title {
+    font-size: 1.15rem; font-weight: 700; color: var(--white);
+    margin: 2rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--orange);
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+  @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem;
+  }
+  .card h2 {
+    font-size: 0.95rem; font-weight: 600; margin-bottom: 1rem; color: var(--white);
+  }
+  .card h2 small {
+    font-family: 'IBM Plex Sans', sans-serif; font-weight: 400; color: var(--muted);
+    font-size: 0.75rem; margin-left: 0.5rem;
+  }
+  .chart-container { position: relative; width: 100%; height: 360px; }
+  .chart-container.tall { height: 420px; }
+
+  .table-wrap { overflow-x: auto; max-height: 500px; overflow-y: auto; }
+  table { width: 100%; border-collapse: collapse; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.8rem; }
+  thead { position: sticky; top: 0; z-index: 2; }
+  th {
+    background: #1f1f1f; color: var(--orange); font-family: 'IBM Plex Sans Condensed', sans-serif;
+    text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.05em; font-weight: 700;
+    padding: 0.65rem 0.6rem; text-align: left; border-bottom: 2px solid var(--orange);
+    white-space: nowrap; cursor: pointer;
+  }
+  th:hover { color: var(--white); }
+  td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); }
+  tr:hover td { background: rgba(255,79,0,0.04); }
+
+  .badge {
+    display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px;
+    font-size: 0.65rem; font-weight: 600; font-family: 'IBM Plex Sans Condensed', sans-serif;
+  }
+  .badge-species { background: rgba(73,151,208,0.15); color: var(--blue); }
+  .badge-agency { background: rgba(255,163,0,0.15); color: var(--yellow); }
+
+  .method-note {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 1.5rem; margin-top: 2rem;
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.85rem; color: var(--muted);
+    line-height: 1.7;
+  }
+  .method-note h3 {
+    font-family: 'IBM Plex Serif', serif; color: var(--white);
+    font-size: 0.95rem; margin-bottom: 0.75rem;
+  }
+  .method-note a { color: var(--blue); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-top">
+      <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 65" height="32">
+        <text x="0" y="48" font-family="'IBM Plex Serif',serif" font-size="18" font-weight="700" fill="#FF4F00">FOUNDATION FOR AMERICAN INNOVATION</text>
+      </svg>
+      <span class="header-meta">Data from USFWS ECOS · Last updated March 2026</span>
+    </div>
+    <h1>ESA Section 7 Biological Opinions Dashboard</h1>
+    <p class="subtitle">USFWS formal consultations under the Endangered Species Act — 3,061 biological opinions (1989–2022)</p>
+    <div class="header-tags">
+      <span>USFWS ECOS</span>
+      <span>ESA Section 7</span>
+      <span>Formal Consultations</span>
+      <span>Endangered Species</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <!-- Filters -->
+  <div class="global-filters">
+    <div class="filter-group">
+      <label>Lead Agency</label>
+      <select id="fAgency"><option value="">All Agencies</option></select>
+    </div>
+    <div class="filter-group">
+      <label>FWS Office</label>
+      <select id="fOffice"><option value="">All Offices</option></select>
+    </div>
+    <div class="filter-group">
+      <label>Species</label>
+      <select id="fSpecies"><option value="">All Species</option></select>
+    </div>
+    <div class="filter-group">
+      <label>Year Range</label>
+      <div style="display:flex;gap:0.25rem;align-items:center;">
+        <input type="number" id="fYearFrom" style="width:5rem" placeholder="From">
+        <span style="color:var(--muted)">–</span>
+        <input type="number" id="fYearTo" style="width:5rem" placeholder="To">
+      </div>
+    </div>
+    <button class="filter-reset" onclick="resetFilters()">Reset</button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi"><div class="value" id="kTotal">—</div><div class="label">Total Biological Opinions</div></div>
+    <div class="kpi blue"><div class="value" id="kSpecies">—</div><div class="label">Unique Species Consulted</div></div>
+    <div class="kpi yellow"><div class="value" id="kAgencies">—</div><div class="label">Lead Agencies</div></div>
+    <div class="kpi timber"><div class="value" id="kOffices">—</div><div class="label">FWS Field Offices</div></div>
+    <div class="kpi"><div class="value" id="kPeak">—</div><div class="label">Peak Year</div></div>
+  </div>
+
+  <!-- Charts Row 1 -->
+  <h2 class="section-title">BiOps Over Time</h2>
+  <div class="card" style="margin-bottom:1.5rem">
+    <h2>Biological Opinions by Year <small>formal consultations completed</small></h2>
+    <div class="chart-container"><canvas id="chartYear"></canvas></div>
+  </div>
+
+  <h2 class="section-title">Who Consults?</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h2>Top Lead Agencies <small>action agencies requesting consultation</small></h2>
+      <div class="chart-container tall"><canvas id="chartAgency"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Top FWS Field Offices <small>offices issuing biological opinions</small></h2>
+      <div class="chart-container tall"><canvas id="chartOffice"></canvas></div>
+    </div>
+  </div>
+
+  <h2 class="section-title">Species</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h2>Most Consulted Species <small>species appearing in formal consultations</small></h2>
+      <div class="chart-container tall"><canvas id="chartSpecies"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Activity Types <small>project categories triggering consultation</small></h2>
+      <div class="chart-container tall"><canvas id="chartActivity"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Species per consultation distribution -->
+  <div class="grid-2">
+    <div class="card">
+      <h2>Species per Consultation <small>how many species each BiOp covers</small></h2>
+      <div class="chart-container"><canvas id="chartSpeciesPerBiop"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Cumulative BiOps <small>running total over time</small></h2>
+      <div class="chart-container"><canvas id="chartCumulative"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <h2 class="section-title">Full BiOp Table</h2>
+  <div class="card">
+    <div class="table-wrap">
+      <table id="biopTable">
+        <thead>
+          <tr>
+            <th onclick="sortTable(0)">Date ▾</th>
+            <th onclick="sortTable(1)">Title</th>
+            <th onclick="sortTable(2)">Lead Agency</th>
+            <th onclick="sortTable(3)">FWS Office</th>
+            <th onclick="sortTable(4)">Species</th>
+            <th onclick="sortTable(5)"># Sp.</th>
+          </tr>
+        </thead>
+        <tbody id="biopBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="method-note">
+    <h3>Methodology & Data Notes</h3>
+    <p>
+      This dashboard presents <strong>3,061 formal biological opinions</strong> issued by the U.S. Fish and Wildlife Service
+      under Section 7 of the Endangered Species Act, as recorded in the
+      <a href="https://ecos.fws.gov/ecp/report/biologicalOpinion" target="_blank">ECOS Biological Opinion Report</a>.
+      The data spans 1989–2022 but is most complete from 2006 onward (when the TAILS tracking system became mandatory).
+    </p>
+    <p style="margin-top:0.5rem">
+      <strong>Key limitations:</strong> This is USFWS only — NMFS/NOAA Fisheries opinions are tracked separately in the ECO system.
+      Jeopardy/no-jeopardy findings and incidental take statements are not available in the public ECOS data.
+      The Malcom & Li (2015) PNAS study found ~975 formal consultations per year from the internal TAILS system, suggesting
+      ECOS captures only a subset. Annual volume before ~2010 is significantly underrepresented.
+    </p>
+    <p style="margin-top:0.5rem">
+      Built by the <a href="https://www.thefai.org" target="_blank">Foundation for American Innovation</a> energy & environment team.
+    </p>
+  </div>
+</div>
+
+<script>
+const chartDefaults = {
+  color: '#999',
+  font: { family: "'IBM Plex Sans', sans-serif" },
+};
+Chart.defaults.color = chartDefaults.color;
+Chart.defaults.font.family = chartDefaults.font.family;
+
+let filtered = [...BIOP_DATA];
+let charts = {};
+let currentSort = { col: 0, asc: false };
+
+// ── Filters ──
+function populateFilters() {
+  const agencies = new Map();
+  const offices = new Map();
+  const species = new Map();
+  BIOP_DATA.forEach(d => {
+    if (d.a) agencies.set(d.a, (agencies.get(d.a)||0)+1);
+    if (d.o) offices.set(d.o, (offices.get(d.o)||0)+1);
+    d.sp.forEach(s => species.set(s, (species.get(s)||0)+1));
+  });
+
+  const sortedAgencies = [...agencies.entries()].sort((a,b)=>b[1]-a[1]);
+  const sortedOffices = [...offices.entries()].sort((a,b)=>b[1]-a[1]);
+  const sortedSpecies = [...species.entries()].sort((a,b)=>b[1]-a[1]);
+
+  const sel = (id, items) => {
+    const el = document.getElementById(id);
+    items.forEach(([name, count]) => {
+      const o = document.createElement('option');
+      o.value = name;
+      o.textContent = `${name} (${count})`;
+      el.appendChild(o);
+    });
+  };
+  sel('fAgency', sortedAgencies);
+  sel('fOffice', sortedOffices);
+  sel('fSpecies', sortedSpecies.slice(0, 100)); // top 100 species
+}
+
+function applyFilters() {
+  const agency = document.getElementById('fAgency').value;
+  const office = document.getElementById('fOffice').value;
+  const species = document.getElementById('fSpecies').value;
+  const yearFrom = parseInt(document.getElementById('fYearFrom').value) || 0;
+  const yearTo = parseInt(document.getElementById('fYearTo').value) || 9999;
+
+  filtered = BIOP_DATA.filter(d => {
+    const year = parseInt(d.d.substring(0,4));
+    if (agency && d.a !== agency) return false;
+    if (office && d.o !== office) return false;
+    if (species && !d.sp.includes(species)) return false;
+    if (year < yearFrom || year > yearTo) return false;
+    return true;
+  });
+  render();
+}
+
+function resetFilters() {
+  document.getElementById('fAgency').value = '';
+  document.getElementById('fOffice').value = '';
+  document.getElementById('fSpecies').value = '';
+  document.getElementById('fYearFrom').value = '';
+  document.getElementById('fYearTo').value = '';
+  filtered = [...BIOP_DATA];
+  render();
+}
+
+['fAgency','fOffice','fSpecies','fYearFrom','fYearTo'].forEach(id => {
+  document.getElementById(id).addEventListener('change', applyFilters);
+});
+
+// ── Helpers ──
+function countBy(arr, fn) {
+  const m = new Map();
+  arr.forEach(d => { const k = fn(d); if (k) m.set(k, (m.get(k)||0)+1); });
+  return [...m.entries()].sort((a,b)=>b[1]-a[1]);
+}
+
+function makeOrUpdate(id, type, data, options) {
+  if (charts[id]) { charts[id].data = data; charts[id].options = {...charts[id].options, ...options}; charts[id].update(); return; }
+  const ctx = document.getElementById(id);
+  charts[id] = new Chart(ctx, { type, data, options });
+}
+
+// ── Render ──
+function render() {
+  // KPIs
+  const allSpecies = new Set();
+  const allAgencies = new Set();
+  const allOffices = new Set();
+  const yearCounts = {};
+  filtered.forEach(d => {
+    d.sp.forEach(s => allSpecies.add(s));
+    if (d.a) allAgencies.add(d.a);
+    if (d.o) allOffices.add(d.o);
+    const y = d.d.substring(0,4);
+    yearCounts[y] = (yearCounts[y]||0) + 1;
+  });
+  const peakYear = Object.entries(yearCounts).sort((a,b)=>b[1]-a[1])[0];
+
+  document.getElementById('kTotal').textContent = filtered.length.toLocaleString();
+  document.getElementById('kSpecies').textContent = allSpecies.size.toLocaleString();
+  document.getElementById('kAgencies').textContent = allAgencies.size.toLocaleString();
+  document.getElementById('kOffices').textContent = allOffices.size.toLocaleString();
+  document.getElementById('kPeak').textContent = peakYear ? `${peakYear[0]} (${peakYear[1]})` : '—';
+
+  // Year chart
+  const years = Object.keys(yearCounts).sort();
+  makeOrUpdate('chartYear', 'bar', {
+    labels: years,
+    datasets: [{
+      data: years.map(y => yearCounts[y]),
+      backgroundColor: '#FF4F00',
+      borderRadius: 3,
+    }]
+  }, {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { maxRotation: 45 } },
+      y: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
+    }
+  });
+
+  // Top 15 agencies
+  const topAgencies = countBy(filtered, d => d.a).slice(0, 15);
+  makeOrUpdate('chartAgency', 'bar', {
+    labels: topAgencies.map(([a]) => a.length > 35 ? a.substring(0,32)+'…' : a),
+    datasets: [{ data: topAgencies.map(([,c]) => c), backgroundColor: '#FFA300', borderRadius: 3 }]
+  }, {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true },
+      y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+    }
+  });
+
+  // Top 15 offices
+  const topOffices = countBy(filtered, d => d.o).slice(0, 15);
+  makeOrUpdate('chartOffice', 'bar', {
+    labels: topOffices.map(([a]) => a.length > 35 ? a.substring(0,32)+'…' : a),
+    datasets: [{ data: topOffices.map(([,c]) => c), backgroundColor: '#4997D0', borderRadius: 3 }]
+  }, {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true },
+      y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+    }
+  });
+
+  // Top 20 species
+  const speciesCounts = new Map();
+  filtered.forEach(d => d.sp.forEach(s => speciesCounts.set(s, (speciesCounts.get(s)||0)+1)));
+  const topSpecies = [...speciesCounts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,20);
+  makeOrUpdate('chartSpecies', 'bar', {
+    labels: topSpecies.map(([s]) => s.length > 30 ? s.substring(0,27)+'…' : s),
+    datasets: [{ data: topSpecies.map(([,c]) => c), backgroundColor: '#4CAF50', borderRadius: 3 }]
+  }, {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true },
+      y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+    }
+  });
+
+  // Activity types
+  const topActivities = countBy(filtered, d => d.at).filter(([a])=>a!=='Unknown' && a!=='** OTHER **').slice(0, 15);
+  makeOrUpdate('chartActivity', 'bar', {
+    labels: topActivities.map(([a]) => a.length > 35 ? a.substring(0,32)+'…' : a),
+    datasets: [{ data: topActivities.map(([,c]) => c), backgroundColor: '#D9D9D6', borderRadius: 3 }]
+  }, {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true },
+      y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+    }
+  });
+
+  // Species per BiOp distribution
+  const spPerBiop = {};
+  filtered.forEach(d => {
+    const n = Math.min(d.ns, 10);
+    const label = n >= 10 ? '10+' : String(n);
+    spPerBiop[label] = (spPerBiop[label]||0) + 1;
+  });
+  const spLabels = ['0','1','2','3','4','5','6','7','8','9','10+'];
+  makeOrUpdate('chartSpeciesPerBiop', 'bar', {
+    labels: spLabels,
+    datasets: [{ data: spLabels.map(l => spPerBiop[l]||0), backgroundColor: '#4997D0', borderRadius: 3 }]
+  }, {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { title: { display: true, text: 'Number of species in consultation' }, grid: { display: false } },
+      y: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
+    }
+  });
+
+  // Cumulative
+  const cumData = [];
+  let cumTotal = 0;
+  years.forEach(y => { cumTotal += yearCounts[y]; cumData.push(cumTotal); });
+  makeOrUpdate('chartCumulative', 'line', {
+    labels: years,
+    datasets: [{
+      data: cumData, borderColor: '#FF4F00', backgroundColor: 'rgba(255,79,0,0.1)',
+      fill: true, tension: 0.3, pointRadius: 2
+    }]
+  }, {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { maxRotation: 45 } },
+      y: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
+    }
+  });
+
+  // Table
+  renderTable();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('biopBody');
+  const rows = [...filtered].sort((a,b) => {
+    const dir = currentSort.asc ? 1 : -1;
+    switch(currentSort.col) {
+      case 0: return (a.d > b.d ? 1 : -1) * dir;
+      case 1: return a.t.localeCompare(b.t) * dir;
+      case 2: return a.a.localeCompare(b.a) * dir;
+      case 3: return a.o.localeCompare(b.o) * dir;
+      case 4: return (a.sp.join(', ')).localeCompare(b.sp.join(', ')) * dir;
+      case 5: return (a.ns - b.ns) * dir;
+      default: return 0;
+    }
+  });
+
+  // Show max 500 rows for performance
+  const display = rows.slice(0, 500);
+  tbody.innerHTML = display.map(d => `<tr>
+    <td style="white-space:nowrap">${d.d}</td>
+    <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis" title="${d.t.replace(/"/g,'&quot;')}">${d.t}</td>
+    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${d.a || '—'}</td>
+    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis" title="${d.o}">${d.o.length > 30 ? d.o.substring(0,27)+'…' : d.o}</td>
+    <td style="max-width:250px;overflow:hidden;text-overflow:ellipsis" title="${d.sp.join(', ')}">${d.sp.slice(0,3).join(', ')}${d.sp.length > 3 ? ' …' : ''}</td>
+    <td>${d.ns}</td>
+  </tr>`).join('');
+
+  if (rows.length > 500) {
+    tbody.innerHTML += `<tr><td colspan="6" style="text-align:center;color:var(--muted);font-style:italic">
+      Showing 500 of ${rows.length.toLocaleString()} results. Use filters to narrow.</td></tr>`;
+  }
+}
+
+function sortTable(col) {
+  if (currentSort.col === col) currentSort.asc = !currentSort.asc;
+  else { currentSort.col = col; currentSort.asc = col === 0 ? false : true; }
+  renderTable();
+}
+
+// ── Init ──
+populateFilters();
+render();
+</script>
+</body>
+</html>
