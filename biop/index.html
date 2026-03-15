@@ -163,12 +163,12 @@
       <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 65" height="32">
         <text x="0" y="48" font-family="'IBM Plex Serif',serif" font-size="18" font-weight="700" fill="#FF4F00">FOUNDATION FOR AMERICAN INNOVATION</text>
       </svg>
-      <span class="header-meta">Data from USFWS ECOS · Last updated March 2026</span>
+      <span class="header-meta">Data from USFWS ECOSPHERE · Last updated March 2026</span>
     </div>
     <h1>ESA Section 7 Biological Opinions Dashboard</h1>
-    <p class="subtitle">USFWS formal consultations under the Endangered Species Act — 3,061 biological opinions (1989–2022)</p>
+    <p class="subtitle">USFWS formal consultations under the Endangered Species Act — 4,694 biological opinions (1989–2026)</p>
     <div class="header-tags">
-      <span>USFWS ECOS</span>
+      <span>USFWS ECOSPHERE</span>
       <span>ESA Section 7</span>
       <span>Formal Consultations</span>
       <span>Endangered Species</span>
@@ -208,7 +208,6 @@
     <div class="kpi blue"><div class="value" id="kSpecies">—</div><div class="label">Unique Species Consulted</div></div>
     <div class="kpi yellow"><div class="value" id="kAgencies">—</div><div class="label">Lead Agencies</div></div>
     <div class="kpi timber"><div class="value" id="kOffices">—</div><div class="label">FWS Field Offices</div></div>
-    <div class="kpi"><div class="value" id="kPeak">—</div><div class="label">Peak Year</div></div>
   </div>
 
   <!-- Charts Row 1 -->
@@ -277,16 +276,16 @@
   <div class="method-note">
     <h3>Methodology & Data Notes</h3>
     <p>
-      This dashboard presents <strong>3,061 formal biological opinions</strong> issued by the U.S. Fish and Wildlife Service
+      This dashboard presents <strong>4,694 formal biological opinions</strong> issued by the U.S. Fish and Wildlife Service
       under Section 7 of the Endangered Species Act, as recorded in the
-      <a href="https://ecos.fws.gov/ecp/report/biologicalOpinion" target="_blank">ECOS Biological Opinion Report</a>.
-      The data spans 1989–2022 but is most complete from 2006 onward (when the TAILS tracking system became mandatory).
+      <a href="https://reports.ecosphere.fws.gov/FWSPublicReports/Reports/Index?reportname=BiologicalOpinionReport" target="_blank">ECOSPHERE Biological Opinion Report</a>.
+      The data spans 1989–2026 but is most complete from 2006 onward (when the TAILS tracking system became mandatory).
     </p>
     <p style="margin-top:0.5rem">
       <strong>Key limitations:</strong> This is USFWS only — NMFS/NOAA Fisheries opinions are tracked separately in the ECO system.
-      Jeopardy/no-jeopardy findings and incidental take statements are not available in the public ECOS data.
-      The Malcom & Li (2015) PNAS study found ~975 formal consultations per year from the internal TAILS system, suggesting
-      ECOS captures only a subset. Annual volume before ~2010 is significantly underrepresented.
+      Jeopardy/no-jeopardy findings and incidental take statements are not available in the public data.
+      The Malcom &amp; Li (2015) PNAS study found ~975 formal consultations per year from the internal TAILS system, suggesting
+      the public ECOSPHERE report captures only a subset. Annual volume before ~2010 is significantly underrepresented.
     </p>
     <p style="margin-top:0.5rem">
       Built by the <a href="https://www.thefai.org" target="_blank">Foundation for American Innovation</a> energy & environment team.
@@ -394,13 +393,10 @@ function render() {
     const y = d.d.substring(0,4);
     yearCounts[y] = (yearCounts[y]||0) + 1;
   });
-  const peakYear = Object.entries(yearCounts).sort((a,b)=>b[1]-a[1])[0];
-
   document.getElementById('kTotal').textContent = filtered.length.toLocaleString();
   document.getElementById('kSpecies').textContent = allSpecies.size.toLocaleString();
   document.getElementById('kAgencies').textContent = allAgencies.size.toLocaleString();
   document.getElementById('kOffices').textContent = allOffices.size.toLocaleString();
-  document.getElementById('kPeak').textContent = peakYear ? `${peakYear[0]} (${peakYear[1]})` : '—';
 
   // Year chart
   const years = Object.keys(yearCounts).sort();
