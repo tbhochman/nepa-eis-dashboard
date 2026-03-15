@@ -539,7 +539,7 @@
   </div>
 
   <!-- Underway -->
-  <div class="section-title">Currently Underway (No ROD as of March 9, 2026)</div>
+  <div class="section-title">Currently Underway (No ROD as of March 14, 2026)</div>
   <div class="grid-2" style="margin-bottom:1rem">
     <div class="card">
       <h2>Underway EISs by Agency</h2>
@@ -1076,7 +1076,10 @@ function applyFilters() {
 
   // -- Underway charts --
   const uwByAgency = groupByField(filteredUW, 'agency');
-  const uwAgEntries = Object.entries(uwByAgency).map(([a,recs])=>({agency:a,count:recs.length})).sort((a,b)=>b.count-a.count);
+  const uwAgAll = Object.entries(uwByAgency).map(([a,recs])=>({agency:a,count:recs.length})).sort((a,b)=>b.count-a.count);
+  const uwAgTop = uwAgAll.filter(a => a.count >= 3);
+  const uwOtherCount = uwAgAll.filter(a => a.count < 3).reduce((s,a) => s + a.count, 0);
+  const uwAgEntries = uwOtherCount > 0 ? [...uwAgTop, {agency:'Other', count: uwOtherCount}] : uwAgTop;
 
   updateChart('chartUnderwayAgency', 'bar', {
     labels: uwAgEntries.map(a=>a.agency),
