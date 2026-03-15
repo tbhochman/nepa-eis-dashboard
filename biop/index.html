@@ -233,13 +233,6 @@
     <div class="kpi timber"><div class="value" id="kOffices">—</div><div class="label">FWS Field Offices</div></div>
   </div>
 
-  <!-- Charts Row 1 -->
-  <h2 class="section-title">BiOps Over Time</h2>
-  <div class="card" style="margin-bottom:1.5rem">
-    <h2>Biological Opinions by Year <small>reflects data entry patterns, not actual consultation volume</small></h2>
-    <div class="chart-container"><canvas id="chartYear"></canvas></div>
-  </div>
-
   <h2 class="section-title">Who Consults?</h2>
   <div class="grid-2">
     <div class="card">
@@ -261,18 +254,6 @@
     <div class="card">
       <h2>Activity Types <small>project categories triggering consultation</small></h2>
       <div class="chart-container tall"><canvas id="chartActivity"></canvas></div>
-    </div>
-  </div>
-
-  <!-- Species per consultation distribution -->
-  <div class="grid-2">
-    <div class="card">
-      <h2>Species per Consultation <small>how many species each BiOp covers</small></h2>
-      <div class="chart-container"><canvas id="chartSpeciesPerBiop"></canvas></div>
-    </div>
-    <div class="card">
-      <h2>Cumulative BiOps <small>running total over time</small></h2>
-      <div class="chart-container"><canvas id="chartCumulative"></canvas></div>
     </div>
   </div>
 
@@ -404,36 +385,15 @@ function render() {
   const allSpecies = new Set();
   const allAgencies = new Set();
   const allOffices = new Set();
-  const yearCounts = {};
   filtered.forEach(d => {
     d.sp.forEach(s => allSpecies.add(s));
     if (d.a) allAgencies.add(d.a);
     if (d.o) allOffices.add(d.o);
-    const y = d.d.substring(0,4);
-    yearCounts[y] = (yearCounts[y]||0) + 1;
   });
   document.getElementById('kTotal').textContent = filtered.length.toLocaleString();
   document.getElementById('kSpecies').textContent = allSpecies.size.toLocaleString();
   document.getElementById('kAgencies').textContent = allAgencies.size.toLocaleString();
   document.getElementById('kOffices').textContent = allOffices.size.toLocaleString();
-
-  // Year chart
-  const years = Object.keys(yearCounts).sort();
-  makeOrUpdate('chartYear', 'bar', {
-    labels: years,
-    datasets: [{
-      data: years.map(y => yearCounts[y]),
-      backgroundColor: '#FF4F00',
-      borderRadius: 3,
-    }]
-  }, {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { grid: { display: false }, ticks: { maxRotation: 45 } },
-      y: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
-    }
-  });
 
   // Top 15 agencies
   const topAgencies = countBy(filtered, d => d.a).slice(0, 15);
@@ -490,45 +450,6 @@ function render() {
     scales: {
       x: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true },
       y: { grid: { display: false }, ticks: { font: { size: 10 } } }
-    }
-  });
-
-  // Species per BiOp distribution
-  const spPerBiop = {};
-  filtered.forEach(d => {
-    const n = Math.min(d.ns, 10);
-    const label = n >= 10 ? '10+' : String(n);
-    spPerBiop[label] = (spPerBiop[label]||0) + 1;
-  });
-  const spLabels = ['0','1','2','3','4','5','6','7','8','9','10+'];
-  makeOrUpdate('chartSpeciesPerBiop', 'bar', {
-    labels: spLabels,
-    datasets: [{ data: spLabels.map(l => spPerBiop[l]||0), backgroundColor: '#4997D0', borderRadius: 3 }]
-  }, {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { title: { display: true, text: 'Number of species in consultation' }, grid: { display: false } },
-      y: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
-    }
-  });
-
-  // Cumulative
-  const cumData = [];
-  let cumTotal = 0;
-  years.forEach(y => { cumTotal += yearCounts[y]; cumData.push(cumTotal); });
-  makeOrUpdate('chartCumulative', 'line', {
-    labels: years,
-    datasets: [{
-      data: cumData, borderColor: '#FF4F00', backgroundColor: 'rgba(255,79,0,0.1)',
-      fill: true, tension: 0.3, pointRadius: 2
-    }]
-  }, {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { grid: { display: false }, ticks: { maxRotation: 45 } },
-      y: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
     }
   });
 
