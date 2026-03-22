@@ -267,7 +267,7 @@
     </div>
     <div class="chart-container" style="height:300px"><canvas id="chartCoverage"></canvas></div>
     <div style="font-family:'IBM Plex Sans',sans-serif;font-size:0.75rem;color:var(--muted);margin-top:0.5rem;text-align:center">
-      Orange bars: ECOSPHERE records per year. Gray line: estimated TAILS formal BiOp volume (~935–975/year).
+      Orange bars: ECOSPHERE records per year. Gray line: estimated TAILS formal BiOp volume (~935/year per Malcom &amp; Li, 2015).
       Coverage ranges from 17% to 70%, with no year approaching full capture.
     </div>
   </div>
@@ -608,7 +608,7 @@ function renderDataQuality() {
   });
 
   // Coverage stats
-  const TAILS_RATE = 975; // Malcom & Li extrapolation
+  const TAILS_RATE = 935; // Malcom & Li (2015): 6,829 formal BiOps / ~7.3 years
   const totalYears = years.length;
   const totalRecords = years.reduce((s,y) => s + perYear[y], 0);
   const avgPerYear = Math.round(totalRecords / totalYears);
