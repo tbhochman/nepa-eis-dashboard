@@ -1,0 +1,41 @@
+name: Daily EIS Data Update
+
+on:
+  schedule:
+    # Run daily at 7:13 AM UTC (off-peak minute to avoid load spikes)
+    - cron: '13 7 * * *'
+  workflow_dispatch:  # Allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run data update
+        run: python scripts/update_data.py
+
+      - name: Check for changes
+        id: changes
+        run: |
+          git diff --quiet data.js && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.js
+          git commit -m "data: daily update $(date +%Y-%m-%d)
+
+          Automated Federal Register API query for new NOIs, DEIS, FEIS, and RODs.
+          Updates elapsed times for underway projects."
+          git push
