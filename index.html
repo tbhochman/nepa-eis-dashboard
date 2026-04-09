@@ -1176,6 +1176,12 @@ function sortTable(tableId, col) {
   rows.sort((a,b) => {
     let av = a.children[col].textContent.trim();
     let bv = b.children[col].textContent.trim();
+    // Dates (YYYY-MM-DD) — sort lexicographically; treat '—' as empty
+    if (/^\d{4}-\d{2}-\d{2}$/.test(av) || /^\d{4}-\d{2}-\d{2}$/.test(bv)) {
+      av = av === '—' ? '' : av;
+      bv = bv === '—' ? '' : bv;
+      return asc ? av.localeCompare(bv) : bv.localeCompare(av);
+    }
     const an = parseFloat(av), bn = parseFloat(bv);
     if (!isNaN(an) && !isNaN(bn)) return asc ? an-bn : bn-an;
     return asc ? av.localeCompare(bv) : bv.localeCompare(av);
