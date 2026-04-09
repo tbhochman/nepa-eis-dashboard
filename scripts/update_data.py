@@ -756,17 +756,24 @@ def main():
                         updates += 1
 
                 # Also check if ROD matches a completed project missing its ROD
-                match_c = fuzzy_match(title, {r["n"] for r in completed if not r.get("rod")}, threshold=0.5)
+                # Use high threshold (0.7) to avoid cross-contamination between
+                # similarly-named projects (e.g. "Spring Valley Mine" vs "Spring Valley II Solar")
+                missing_rod = {r["n"] for r in completed if not r.get("rod")}
+                match_c = fuzzy_match(title, missing_rod, threshold=0.7)
                 if match_c:
+                    # Extra safety: verify agency matches too
                     for r in completed:
                         if r["n"] == match_c and not r.get("rod"):
-                            r["rod"] = pub_date
-                            if r.get("noi"):
-                                noi_dt = datetime.strptime(r["noi"], "%Y-%m-%d")
-                                rod_dt = datetime.strptime(pub_date, "%Y-%m-%d")
-                                r["d"] = round((rod_dt - noi_dt).days / 365.25, 1)
-                            updates += 1
-                            print(f"     -> Filled ROD for completed: {match_c[:60]}...")
+                            if r["a"] == agency or agency == "Unknown":
+                                r["rod"] = pub_date
+                                if r.get("noi"):
+                                    noi_dt = datetime.strptime(r["noi"], "%Y-%m-%d")
+                                    rod_dt = datetime.strptime(pub_date, "%Y-%m-%d")
+                                    r["d"] = round((rod_dt - noi_dt).days / 365.25, 1)
+                                updates += 1
+                                print(f"     -> Filled ROD for completed: {match_c[:60]}...")
+                            else:
+                                print(f"     -> Skipped ROD fill (agency mismatch: {r['a']} vs {agency}): {match_c[:60]}...")
                             break
 
         print(f"\n   Summary: {new_nois} new NOIs, {updates} updates, {completions} completions")
