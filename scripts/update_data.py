@@ -345,37 +345,44 @@ def fuzzy_match(name, candidates, threshold=0.6):
 def parse_data_js(content):
     """Parse data.js into Python data structures.
 
-    data.js has a simple structure: 3 comment lines followed by 3 const lines,
+    data.js has a simple structure: comment lines followed by const lines,
     each on a single line. We parse line-by-line to avoid offset issues.
     """
     lines = content.split('\n')
     completed = None
     underway = None
+    challenged = None
 
     for line in lines:
         if line.startswith('const DATA_COMPLETED'):
-            # Extract the JSON array between = and ;
             json_str = line.split('=', 1)[1].strip().rstrip(';').strip()
             completed = json.loads(json_str)
         elif line.startswith('const DATA_UNDERWAY'):
             json_str = line.split('=', 1)[1].strip().rstrip(';').strip()
             underway = json.loads(json_str)
+        elif line.startswith('const DATA_CHALLENGED'):
+            json_str = line.split('=', 1)[1].strip().rstrip(';').strip()
+            challenged = json.loads(json_str)
 
     if completed is None:
         raise ValueError("Could not find DATA_COMPLETED in data.js")
     if underway is None:
         raise ValueError("Could not find DATA_UNDERWAY in data.js")
+    if challenged is None:
+        challenged = []
 
-    return completed, underway
+    return completed, underway, challenged
 
 
-def build_data_js(content, completed, underway):
+def build_data_js(content, completed, underway, challenged):
     """Rebuild data.js with updated arrays, preserving all other lines exactly."""
     completed.sort(key=lambda r: r.get("feis", "") or "")
     underway.sort(key=lambda r: r.get("noi", "") or "", reverse=True)
+    challenged.sort(key=lambda pair: pair[0])
 
     completed_json = json.dumps(completed, ensure_ascii=False, separators=(",", ":"))
     underway_json = json.dumps(underway, ensure_ascii=False, separators=(",", ":"))
+    challenged_json = json.dumps(challenged, ensure_ascii=False, separators=(",", ":"))
 
     lines = content.split('\n')
     new_lines = []
@@ -384,6 +391,8 @@ def build_data_js(content, completed, underway):
             new_lines.append(f'const DATA_COMPLETED = {completed_json};')
         elif line.startswith('const DATA_UNDERWAY'):
             new_lines.append(f'const DATA_UNDERWAY = {underway_json};')
+        elif line.startswith('const DATA_CHALLENGED'):
+            new_lines.append(f'const DATA_CHALLENGED = {challenged_json};')
         else:
             new_lines.append(line)
 
@@ -413,6 +422,200 @@ def update_header_comment(content, n_completed, n_underway):
     return '\n'.join(lines)
 
 
+# ============================================================
+# LITIGATION SEARCH
+# ============================================================
+
+CL_DOCKET_API = "https://www.courtlistener.com/api/rest/v4/search/"
+GOOGLE_SCHOLAR_URL = "https://scholar.google.com/scholar"
+
+
+def extract_search_terms(project_name):
+    """Extract distinctive search terms from an EIS project name.
+
+    Strips generic NEPA/EIS boilerplate to get the core project identity.
+    """
+    # Remove common EIS boilerplate phrases
+    boilerplate = [
+        r"environmental impact statement",
+        r"draft environmental impact statement",
+        r"final environmental impact statement",
+        r"record of decision",
+        r"notice of intent",
+        r"proposed|proposal|propose[sd]?",
+        r"to prepare an?",
+        r"to develop|to construct|to provide|to establish|to implement",
+        r"construct(ion)? and operat(ion|e)",
+        r"implementation",
+        r"right-of-way grant[s]?",
+        r"application[s]? for permit",
+        r"section \d+ (&|and) \d+ permit[s]?",
+        r"us army coe|us coe|usace",
+        r"funding|amend(ment)?",
+        r"\beis\b|\bdeis\b|\bfeis\b",
+        r"\bcounty\b|\bcounties\b",
+        r"\bnational forest\b",
+    ]
+    cleaned = project_name
+    for pattern in boilerplate:
+        cleaned = re.sub(pattern, " ", cleaned, flags=re.IGNORECASE)
+
+    # Remove state abbreviations and short words
+    cleaned = re.sub(r'\b[A-Z]{2}\b', ' ', cleaned)
+    cleaned = re.sub(r'\b\w{1,2}\b', ' ', cleaned)
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+
+    # Take the most distinctive words (nouns, proper nouns)
+    words = cleaned.split()
+    # Filter out very common words
+    stopwords = {
+        'the', 'and', 'for', 'from', 'with', 'that', 'this', 'area',
+        'project', 'plan', 'program', 'management', 'resource', 'public',
+        'land', 'lands', 'federal', 'use', 'new', 'within', 'near',
+        'would', 'may', 'also', 'other', 'all', 'has', 'have', 'been',
+        'amendment', 'supplemental', 'revised', 'update',
+    }
+    distinctive = [w for w in words if w.lower() not in stopwords and len(w) > 2]
+
+    # Return up to 5 most distinctive terms
+    return ' '.join(distinctive[:5])
+
+
+def search_courtlistener(query, max_results=5):
+    """Search CourtListener docket API for NEPA-related cases matching query."""
+    params = {
+        "type": "d",  # docket search
+        "q": f'({query}) AND (NEPA OR "environmental impact" OR "environmental impact statement")',
+        "order_by": "dateFiled desc",
+    }
+    url = f"{CL_DOCKET_API}?{urllib.parse.urlencode(params)}"
+
+    headers = {"User-Agent": "NEPA-EIS-Dashboard/1.0"}
+    # Use API token if available (env var)
+    import os
+    token = os.environ.get("COURTLISTENER_API_TOKEN", "")
+    if token:
+        headers["Authorization"] = f"Token {token}"
+
+    try:
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode())
+            results = data.get("results", [])
+            return results[:max_results]
+    except Exception as e:
+        print(f"    CL error: {e}", file=sys.stderr)
+        return []
+
+
+def search_google_scholar(query):
+    """Search Google Scholar for NEPA litigation matching a project.
+
+    Returns a URL to the scholar search results page if relevant results found.
+    """
+    # Build a Google Scholar search URL for the project
+    search_q = f'"{query}" NEPA lawsuit'
+    params = {"q": search_q}
+    url = f"{GOOGLE_SCHOLAR_URL}?{urllib.parse.urlencode(params)}"
+
+    try:
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "Mozilla/5.0 (compatible; NEPA-EIS-Dashboard/1.0)"
+        })
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            body = resp.read().decode("utf-8", errors="replace")
+            # Check if there are actual results (not "did not match any articles")
+            if "did not match any articles" in body:
+                return None
+            # Look for result entries
+            if re.search(r'<div class="gs_r gs_or gs_scl"', body):
+                return url
+    except Exception:
+        pass
+    return None
+
+
+def find_litigation_for_projects(completed, underway, challenged_map):
+    """Search for litigation against EIS projects from the prior year.
+
+    Checks both CourtListener dockets and Google Scholar for each project
+    that doesn't already have a challenged entry.
+    """
+    today = date.today()
+    one_year_ago = date(today.year - 1, today.month, today.day)
+    cutoff = one_year_ago.isoformat()
+
+    # Gather projects from the prior year (NOI, FEIS, or ROD in last 12 months)
+    candidates = []
+    for r in completed:
+        dates = [r.get("rod", ""), r.get("feis", ""), r.get("noi", "")]
+        if any(d and d >= cutoff for d in dates):
+            candidates.append(r["n"])
+    for r in underway:
+        if r.get("noi", "") >= cutoff:
+            candidates.append(r["n"])
+
+    # Filter out already-challenged
+    candidates = [name for name in candidates if name not in challenged_map]
+
+    if not candidates:
+        print("   No new candidates to check for litigation.")
+        return {}
+
+    print(f"   Checking {len(candidates)} projects from the prior year...")
+
+    new_challenged = {}
+    checked = 0
+
+    for name in candidates:
+        search_terms = extract_search_terms(name)
+        if len(search_terms.split()) < 2:
+            continue  # Too few distinctive terms to search meaningfully
+
+        checked += 1
+
+        # 1. CourtListener docket search
+        cl_results = search_courtlistener(search_terms)
+        if cl_results:
+            # Check if any result is a plausible match
+            for result in cl_results:
+                case_name = result.get("caseName", "")
+                docket_url = result.get("absolute_url", "")
+                # Verify the case is NEPA-related by checking case name or description
+                case_lower = case_name.lower()
+                desc = (result.get("description", "") or "").lower()
+                combined = f"{case_lower} {desc}"
+                if any(kw in combined for kw in [
+                    "nepa", "environmental impact", "eis",
+                    "environmental assessment", "record of decision",
+                ]) or fuzzy_match(search_terms, [case_name], threshold=0.3):
+                    url = f"https://www.courtlistener.com{docket_url}" if docket_url else ""
+                    if url:
+                        new_challenged[name] = url
+                        print(f"     MATCH (CL): {name[:50]}... -> {case_name[:50]}...")
+                        break
+
+        # 2. Google Scholar search (only if not already found via CL)
+        if name not in new_challenged:
+            # Use a shorter, more distinctive query for Scholar
+            short_terms = ' '.join(search_terms.split()[:3])
+            if len(short_terms) > 5:
+                scholar_url = search_google_scholar(short_terms)
+                if scholar_url:
+                    new_challenged[name] = scholar_url
+                    print(f"     MATCH (Scholar): {name[:50]}...")
+
+        # Rate limiting: be gentle with both APIs
+        time.sleep(1.5)
+
+        # Progress
+        if checked % 10 == 0:
+            print(f"   ... checked {checked}/{len(candidates)}")
+
+    print(f"   Litigation search complete: {len(new_challenged)} new matches from {checked} checked")
+    return new_challenged
+
+
 def main():
     print("=== NEPA EIS Dashboard Daily Update ===")
     print(f"Date: {date.today().isoformat()}")
@@ -420,8 +623,9 @@ def main():
     # Read current data
     print("\n1. Reading current data.js...")
     content = DATA_JS.read_text(encoding="utf-8")
-    completed, underway = parse_data_js(content)
-    print(f"   Completed: {len(completed)}, Underway: {len(underway)}")
+    completed, underway, challenged = parse_data_js(content)
+    challenged_map = {pair[0]: pair[1] for pair in challenged}
+    print(f"   Completed: {len(completed)}, Underway: {len(underway)}, Challenged: {len(challenged)}")
 
     # Build lookup maps
     completed_names = {r["n"] for r in completed}
@@ -579,12 +783,23 @@ def main():
             except ValueError:
                 pass
 
+    # Litigation search for projects from the prior year
+    print("\n5. Searching for litigation (prior year projects)...")
+    new_lit = find_litigation_for_projects(completed, underway, challenged_map)
+    if new_lit:
+        for name, url in new_lit.items():
+            challenged_map[name] = url
+        challenged = [[k, v] for k, v in challenged_map.items()]
+        print(f"   Challenged total: {len(challenged)} (+{len(new_lit)} new)")
+    else:
+        challenged = [[k, v] for k, v in challenged_map.items()]
+
     # Rebuild data.js
-    print("\n5. Writing updated data.js...")
-    new_content = build_data_js(content, completed, underway)
+    print("\n6. Writing updated data.js...")
+    new_content = build_data_js(content, completed, underway, challenged)
     new_content = update_header_comment(new_content, len(completed), len(underway))
     DATA_JS.write_text(new_content, encoding="utf-8")
-    print(f"   Done. Completed: {len(completed)}, Underway: {len(underway)}")
+    print(f"   Done. Completed: {len(completed)}, Underway: {len(underway)}, Challenged: {len(challenged)}")
 
     # Report if anything changed
     changed = new_content != content
