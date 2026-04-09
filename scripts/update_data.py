@@ -426,8 +426,7 @@ def update_header_comment(content, n_completed, n_underway):
 # LITIGATION SEARCH
 # ============================================================
 
-CL_DOCKET_API = "https://www.courtlistener.com/api/rest/v4/search/"
-GOOGLE_SCHOLAR_URL = "https://scholar.google.com/scholar"
+CL_SEARCH_API = "https://www.courtlistener.com/api/rest/v4/search/"
 
 
 def extract_search_terms(project_name):
@@ -435,7 +434,6 @@ def extract_search_terms(project_name):
 
     Strips generic NEPA/EIS boilerplate to get the core project identity.
     """
-    # Remove common EIS boilerplate phrases
     boilerplate = [
         r"environmental impact statement",
         r"draft environmental impact statement",
@@ -460,14 +458,11 @@ def extract_search_terms(project_name):
     for pattern in boilerplate:
         cleaned = re.sub(pattern, " ", cleaned, flags=re.IGNORECASE)
 
-    # Remove state abbreviations and short words
     cleaned = re.sub(r'\b[A-Z]{2}\b', ' ', cleaned)
     cleaned = re.sub(r'\b\w{1,2}\b', ' ', cleaned)
     cleaned = re.sub(r'\s+', ' ', cleaned).strip()
 
-    # Take the most distinctive words (nouns, proper nouns)
     words = cleaned.split()
-    # Filter out very common words
     stopwords = {
         'the', 'and', 'for', 'from', 'with', 'that', 'this', 'area',
         'project', 'plan', 'program', 'management', 'resource', 'public',
@@ -477,21 +472,19 @@ def extract_search_terms(project_name):
     }
     distinctive = [w for w in words if w.lower() not in stopwords and len(w) > 2]
 
-    # Return up to 5 most distinctive terms
     return ' '.join(distinctive[:5])
 
 
-def search_courtlistener(query, max_results=5):
+def search_courtlistener_dockets(query, max_results=5):
     """Search CourtListener docket API for NEPA-related cases matching query."""
     params = {
-        "type": "d",  # docket search
-        "q": f'({query}) AND (NEPA OR "environmental impact" OR "environmental impact statement")',
+        "type": "d",
+        "q": f'({query}) AND (NEPA OR "National Environmental Policy Act" OR "environmental impact statement")',
         "order_by": "dateFiled desc",
     }
-    url = f"{CL_DOCKET_API}?{urllib.parse.urlencode(params)}"
+    url = f"{CL_SEARCH_API}?{urllib.parse.urlencode(params)}"
 
     headers = {"User-Agent": "NEPA-EIS-Dashboard/1.0"}
-    # Use API token if available (env var)
     import os
     token = os.environ.get("COURTLISTENER_API_TOKEN", "")
     if token:
@@ -501,45 +494,77 @@ def search_courtlistener(query, max_results=5):
         req = urllib.request.Request(url, headers=headers)
         with urllib.request.urlopen(req, timeout=30) as resp:
             data = json.loads(resp.read().decode())
-            results = data.get("results", [])
-            return results[:max_results]
+            return data.get("results", [])[:max_results]
     except Exception as e:
         print(f"    CL error: {e}", file=sys.stderr)
         return []
 
 
-def search_google_scholar(query):
-    """Search Google Scholar for NEPA litigation matching a project.
+def search_courtlistener_opinions(query, max_results=3):
+    """Search CourtListener opinions for NEPA cases mentioning a project."""
+    params = {
+        "type": "o",
+        "q": f'({query}) AND (NEPA OR "National Environmental Policy Act")',
+        "order_by": "dateFiled desc",
+    }
+    url = f"{CL_SEARCH_API}?{urllib.parse.urlencode(params)}"
 
-    Returns a URL to the scholar search results page if relevant results found.
-    """
-    # Build a Google Scholar search URL for the project
-    search_q = f'"{query}" NEPA lawsuit'
-    params = {"q": search_q}
-    url = f"{GOOGLE_SCHOLAR_URL}?{urllib.parse.urlencode(params)}"
+    headers = {"User-Agent": "NEPA-EIS-Dashboard/1.0"}
+    import os
+    token = os.environ.get("COURTLISTENER_API_TOKEN", "")
+    if token:
+        headers["Authorization"] = f"Token {token}"
 
     try:
-        req = urllib.request.Request(url, headers={
-            "User-Agent": "Mozilla/5.0 (compatible; NEPA-EIS-Dashboard/1.0)"
-        })
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            body = resp.read().decode("utf-8", errors="replace")
-            # Check if there are actual results (not "did not match any articles")
-            if "did not match any articles" in body:
-                return None
-            # Look for result entries
-            if re.search(r'<div class="gs_r gs_or gs_scl"', body):
-                return url
-    except Exception:
-        pass
-    return None
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode())
+            return data.get("results", [])[:max_results]
+    except Exception as e:
+        print(f"    CL opinion error: {e}", file=sys.stderr)
+        return []
+
+
+def is_nepa_challenge(result):
+    """Verify a CourtListener result is actually a NEPA challenge.
+
+    Checks case name, description, and snippet for NEPA-specific language.
+    Must mention NEPA/EIS *and* be adversarial (plaintiff v. agency).
+    """
+    case_name = (result.get("caseName", "") or "").lower()
+    desc = (result.get("description", "") or "").lower()
+    snippet = (result.get("snippet", "") or "").lower()
+    combined = f"{case_name} {desc} {snippet}"
+
+    # Must contain NEPA-specific terms
+    has_nepa = any(kw in combined for kw in [
+        "nepa", "national environmental policy",
+        "environmental impact statement",
+        "record of decision",
+        "notice of intent",
+        "40 c.f.r.",   # CEQ regulations
+        "42 u.s.c. 4332",  # NEPA statute
+    ])
+    if not has_nepa:
+        return False
+
+    # Should look like an adversarial case (v. agency pattern)
+    agency_defendants = [
+        "bureau", "department", "forest service", "army corps",
+        "fish and wildlife", "blm", "ferc", "fhwa", "faa", "nrc",
+        "epa", "boem", "usda", "doi", "doe", "secretary",
+        "administrator", "commissioner",
+    ]
+    has_agency = any(ag in combined for ag in agency_defendants)
+
+    return has_agency
 
 
 def find_litigation_for_projects(completed, underway, challenged_map):
-    """Search for litigation against EIS projects from the prior year.
+    """Search CourtListener for NEPA litigation against EIS projects from the prior year.
 
-    Checks both CourtListener dockets and Google Scholar for each project
-    that doesn't already have a challenged entry.
+    Uses both docket search and opinion search for coverage, with strict
+    verification that matches are actual NEPA challenges (not tangential mentions).
     """
     today = date.today()
     one_year_ago = date(today.year - 1, today.month, today.day)
@@ -570,45 +595,36 @@ def find_litigation_for_projects(completed, underway, challenged_map):
     for name in candidates:
         search_terms = extract_search_terms(name)
         if len(search_terms.split()) < 2:
-            continue  # Too few distinctive terms to search meaningfully
+            continue
 
         checked += 1
 
         # 1. CourtListener docket search
-        cl_results = search_courtlistener(search_terms)
-        if cl_results:
-            # Check if any result is a plausible match
-            for result in cl_results:
-                case_name = result.get("caseName", "")
+        cl_results = search_courtlistener_dockets(search_terms)
+        for result in cl_results:
+            if is_nepa_challenge(result):
                 docket_url = result.get("absolute_url", "")
-                # Verify the case is NEPA-related by checking case name or description
-                case_lower = case_name.lower()
-                desc = (result.get("description", "") or "").lower()
-                combined = f"{case_lower} {desc}"
-                if any(kw in combined for kw in [
-                    "nepa", "environmental impact", "eis",
-                    "environmental assessment", "record of decision",
-                ]) or fuzzy_match(search_terms, [case_name], threshold=0.3):
-                    url = f"https://www.courtlistener.com{docket_url}" if docket_url else ""
-                    if url:
-                        new_challenged[name] = url
-                        print(f"     MATCH (CL): {name[:50]}... -> {case_name[:50]}...")
+                if docket_url:
+                    case_name = result.get("caseName", "")
+                    new_challenged[name] = f"https://www.courtlistener.com{docket_url}"
+                    print(f"     MATCH (docket): {name[:50]}... -> {case_name[:50]}...")
+                    break
+
+        # 2. CourtListener opinion search (fallback)
+        if name not in new_challenged:
+            op_results = search_courtlistener_opinions(search_terms)
+            for result in op_results:
+                if is_nepa_challenge(result):
+                    cluster_url = result.get("absolute_url", "")
+                    if cluster_url:
+                        case_name = result.get("caseName", "")
+                        new_challenged[name] = f"https://www.courtlistener.com{cluster_url}"
+                        print(f"     MATCH (opinion): {name[:50]}... -> {case_name[:50]}...")
                         break
 
-        # 2. Google Scholar search (only if not already found via CL)
-        if name not in new_challenged:
-            # Use a shorter, more distinctive query for Scholar
-            short_terms = ' '.join(search_terms.split()[:3])
-            if len(short_terms) > 5:
-                scholar_url = search_google_scholar(short_terms)
-                if scholar_url:
-                    new_challenged[name] = scholar_url
-                    print(f"     MATCH (Scholar): {name[:50]}...")
-
-        # Rate limiting: be gentle with both APIs
+        # Rate limiting: 1 req/sec for free tier
         time.sleep(1.5)
 
-        # Progress
         if checked % 10 == 0:
             print(f"   ... checked {checked}/{len(candidates)}")
 
